@@ -11,9 +11,9 @@ Publication GitHub (binaires produits sur un runner Windows officiel, à partir 
 
 | Fichier | Taille | Rôle |
 |---|---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 025 octets | portable, aucune installation |
-| `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets | installateur (dossier, raccourcis) |
-| `smoke-2.0.png` | 868 040 octets | capture du binaire empaqueté en cours d'exécution |
+| `CozyDesk-Minimal-2.0-Portable.exe` | ≈ 78 Mo | portable, aucune installation |
+| `CozyDesk-Minimal-2.0-Setup.exe` | ≈ 78 Mo | installateur (dossier, raccourcis) |
+| `smoke-2.0.png` | ≈ 868 Ko | capture du binaire empaqueté en cours d'exécution |
 
 L'ancien exécutable 1.0 n'est ni renommé, ni déplacé, ni écrasé : ces deux fichiers portent
 un nom distinct et sont les seuls produits par cette refonte.
@@ -63,7 +63,7 @@ désactivent. Pas de flou sur tous les éléments à la fois.
 | `npm run test` | **87 tests, 11 fichiers, tous verts** |
 | `npm run build` | Vite + esbuild OK, 12 modules en chunks séparés |
 | Contenu de `app.asar` du paquet Windows | **9/9** contrôles (horloge, apparences, bibliothèque, lanceur, réglages, version 2.0.0) |
-| Lancement de `win-unpacked\CozyDesk.exe` | code de sortie 0, capture 868 040 octets, 1024 × 720 |
+| Lancement de `win-unpacked\CozyDesk.exe` | code de sortie 0, capture ≈ 868 Ko, 1024 × 720 |
 | Répertoire de données | `%APPDATA%\CozyDesk` créé au lancement |
 
 Un test dédié prouve que le vérificateur **rejette** un ancien paquet 1.0 simplement renommé :

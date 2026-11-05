@@ -169,7 +169,7 @@ Exécutables produits (run `42077660134`, conclusion success) :
 
 | Fichier | Taille |
 |---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 025 octets |
-| `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets |
+| `CozyDesk-Minimal-2.0-Portable.exe` | ≈ 78 Mo |
+| `CozyDesk-Minimal-2.0-Setup.exe` | ≈ 78 Mo |
 
 Voir `docs/QA-2.0.md` pour le détail des vérifications et des limites.

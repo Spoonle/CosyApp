@@ -69,7 +69,7 @@ démontre que le même vérificateur **refuse** un ancien paquet 1.0 renommé.
 
 **b. Lancement de l'exécutable empaqueté** — `win-unpacked\CozyDesk.exe` démarré avec
 `--smoke-test --open=tasks,notes,settings --wait=7000` : code de sortie **0**, capture
-produite de **868 040 octets** en **1024 × 720**, modules ouverts pendant la capture.
+produite de **≈ 868 Ko** en **1024 × 720**, modules ouverts pendant la capture.
 C'est le binaire du paquet, pas le serveur Vite.
 
 **c. Persistance** — le répertoire `%APPDATA%\CozyDesk` est créé au lancement
@@ -79,9 +79,12 @@ C'est le binaire du paquet, pas le serveur Vite.
 
 | Fichier | Taille |
 |---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 025 octets |
-| `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets |
-| `smoke-2.0.png` (preuve de rendu) | 868 040 octets |
+| `CozyDesk-Minimal-2.0-Portable.exe` | ≈ 78 Mo |
+| `CozyDesk-Minimal-2.0-Setup.exe` | ≈ 78 Mo |
+| `smoke-2.0.png` (preuve de rendu) | ≈ 868 Ko |
+
+Les tailles exactes varient de quelques octets d'un build à l'autre (horodatage embarqué
+par electron-builder) : elles sont donc indiquées en ordre de grandeur.
 
 Publication : `https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0` — l'exécutable 1.0
 d'origine n'est ni déplacé ni écrasé.
