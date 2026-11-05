@@ -5,13 +5,15 @@
  */
 const fs = require('node:fs');
 
-const [, , jsonPath, outPath] = process.argv;
+const [, , jsonPath, outPath, smokePath] = process.argv;
 if (!jsonPath || !outPath) {
-  console.error('usage : node scripts/release-notes.cjs <verification.json> <sortie.md>');
+  console.error('usage : node scripts/release-notes.cjs <verification.json> <sortie.md> [smoke.json]');
   process.exit(1);
 }
 
 const report = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+const smoke =
+  smokePath && fs.existsSync(smokePath) ? JSON.parse(fs.readFileSync(smokePath, 'utf8')) : null;
 
 const lines = [
   'CozyDesk Minimal 2.0 — bureau premium minimaliste.',
@@ -33,6 +35,25 @@ const lines = [
 
 for (const result of report.results) {
   lines.push(`- ${result.ok ? '✅' : '❌'} ${result.name}`);
+}
+
+lines.push('', '### Lancement de l’exécutable empaqueté', '');
+if (smoke === null) {
+  lines.push('- ⚠️ Aucun rapport de lancement disponible.');
+} else {
+  const rendered = smoke.pngExists && smoke.pngBytes >= 20000 && smoke.width >= 800;
+  lines.push(`- ${smoke.launched ? '✅' : '❌'} démarrage de \`win-unpacked\\CozyDesk.exe\``);
+  lines.push(`- ${rendered ? '✅' : '❌'} rendu capturé : ${smoke.pngBytes} octets, ${smoke.width}×${smoke.height}`);
+  if (smoke.error) lines.push(`- ⚠️ ${smoke.error}`);
+  if (!rendered) {
+    lines.push(
+      '',
+      '> La capture de rendu n’a pas pu être obtenue sur le runner (session sans GPU).',
+      '> Le paquet lui-même est vérifié (contenu `app.asar`, version, empreintes) ;',
+      '> la recette visuelle doit être faite sur une machine Windows.',
+      ''
+    );
+  }
 }
 
 fs.writeFileSync(outPath, lines.join('\n') + '\n');

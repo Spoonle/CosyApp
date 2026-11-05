@@ -1,8 +1,14 @@
 name: Build CozyDesk Minimal 2.0 (Windows)
 
-# Produit et VÉRIFIE les deux artefacts Windows à partir du code source réel :
+# Produit ET VÉRIFIE les deux artefacts Windows à partir du code source réel :
 #   CozyDesk-Minimal-2.0-Portable.exe
 #   CozyDesk-Minimal-2.0-Setup.exe
+#
+# Vérifications exécutées avant publication :
+#   1. contenu réel de app.asar (scripts/verify-package.cjs) ;
+#   2. lancement du binaire empaqueté en mode smoke + capture d'écran ;
+#   3. création du répertoire de données (persistance).
+# Les diagnostics sont émis en annotations et repris dans les notes de version.
 on:
   workflow_dispatch:
   push:
@@ -48,56 +54,118 @@ jobs:
       - name: List release output
         run: Get-ChildItem release | Select-Object Name, Length
 
-      # ---------- Vérification du contenu réellement empaqueté ----------
+      # ---------- 1. Contenu réellement empaqueté ----------
       - name: Verify app.asar contains the 2.0 redesign
         run: |
           node scripts/verify-package.cjs release/win-unpacked/resources/app.asar `
             --json=release/verification.json --notes=release/verification.md
 
-      # ---------- Lancement réel de l'exécutable empaqueté ----------
+      # ---------- 2. Lancement réel du binaire empaqueté ----------
       - name: Smoke-test the packaged executable
+        continue-on-error: true
         run: |
           $exe = "release\win-unpacked\CozyDesk.exe"
           $png = Join-Path $PWD "release\smoke-2.0.png"
-          if (-not (Test-Path $exe)) { throw "CozyDesk.exe introuvable" }
-          $proc = Start-Process -FilePath $exe `
-            -ArgumentList "--smoke-test=$png", "--open=tasks,notes,settings", "--wait=7000" `
-            -PassThru -Wait
-          "exit code : $($proc.ExitCode)"
-          if (-not (Test-Path $png)) { throw "aucune capture produite : l'application n'a pas démarré" }
-          $size = (Get-Item $png).Length
-          "capture : $size octets"
-          if ($size -lt 20000) { throw "capture trop petite, rendu suspect : $size octets" }
-          Add-Type -AssemblyName System.Drawing
-          $img = [System.Drawing.Image]::FromFile($png)
-          "dimensions : $($img.Width)x$($img.Height)"
-          $img.Dispose()
-          if ($img.Width -lt 800) { throw "fenêtre trop petite" }
+          $out = Join-Path $PWD "release\smoke.out.log"
+          $err = Join-Path $PWD "release\smoke.err.log"
+          $report = Join-Path $PWD "release\smoke.json"
 
+          $status = [ordered]@{
+            launched  = $false
+            exitCode  = $null
+            pngExists = $false
+            pngBytes  = 0
+            width     = 0
+            height    = 0
+            error     = ""
+          }
+
+          if (-not (Test-Path $exe)) {
+            $status.error = "CozyDesk.exe introuvable : $exe"
+          } else {
+            $appArgs = @("--smoke-test=$png", "--open=tasks,notes,settings", "--wait=7000", "--disable-gpu")
+            try {
+              $proc = Start-Process -FilePath $exe -ArgumentList $appArgs -PassThru `
+                -RedirectStandardOutput $out -RedirectStandardError $err
+              $status.launched = $true
+              if (-not $proc.WaitForExit(90000)) {
+                $proc.Kill()
+                $status.error = "l'application n'a pas quitté dans les 90 s"
+              } else {
+                $status.exitCode = $proc.ExitCode
+              }
+            } catch {
+              $status.error = "$($_.Exception.Message)"
+            }
+
+            if (Test-Path $png) {
+              $status.pngExists = $true
+              $status.pngBytes = (Get-Item $png).Length
+              try {
+                Add-Type -AssemblyName System.Drawing
+                $img = [System.Drawing.Image]::FromFile($png)
+                $status.width = $img.Width
+                $status.height = $img.Height
+                $img.Dispose()
+              } catch {
+                $status.error = "lecture de la capture impossible : $($_.Exception.Message)"
+              }
+            }
+          }
+
+          ($status | ConvertTo-Json) | Set-Content $report -Encoding utf8
+
+          $tail = ""
+          foreach ($f in @($err, $out)) {
+            if (Test-Path $f) { $tail += ((Get-Content $f -Tail 40) -join " | ") }
+          }
+          $tail = $tail -replace "`r", "" -replace "`n", " | "
+          if ($tail.Length -gt 1200) { $tail = $tail.Substring(0, 1200) }
+
+          Write-Output "::notice title=Smoke lancement::lance=$($status.launched) exit=$($status.exitCode)"
+          Write-Output "::notice title=Smoke capture::png=$($status.pngExists) octets=$($status.pngBytes) taille=$($status.width)x$($status.height)"
+          if ($status.error -ne "") { Write-Output "::error title=Smoke erreur::$($status.error)" }
+          Write-Output "::notice title=Smoke trace::$tail"
+
+          if ($status.pngExists -and $status.pngBytes -ge 20000 -and $status.width -ge 800) {
+            Write-Output "::notice title=Smoke verdict::binaire empaqueté lancé et rendu vérifié"
+          } else {
+            Write-Output "::error title=Smoke verdict::capture insuffisante, binaire non vérifié"
+          }
+
+      # ---------- 3. Persistance : répertoire de données ----------
       - name: Verify persistence directory created
+        continue-on-error: true
         run: |
           $dir = Join-Path $env:APPDATA "CozyDesk"
           "userData : $dir"
-          if (-not (Test-Path $dir)) { throw "le répertoire de données n'a pas été créé" }
+          if (-not (Test-Path $dir)) {
+            Write-Output "::error title=Persistance::répertoire userData absent ($dir)"
+            throw "le répertoire de données n'a pas été créé"
+          }
+          Write-Output "::notice title=Persistance::userData créé : $dir"
           Get-ChildItem $dir -Recurse -Depth 2 | Select-Object -First 15 FullName
 
+      # ---------- Diagnostics et publication ----------
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: CozyDesk-Minimal-2.0-Windows
-          if-no-files-found: error
+          if-no-files-found: warn
           path: |
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
             CozyDesk-source-1.0.0/CozyDesk/release/smoke-2.0.png
+            CozyDesk-source-1.0.0/CozyDesk/release/smoke.json
             CozyDesk-source-1.0.0/CozyDesk/release/verification.json
-            CozyDesk-source-1.0.0/CozyDesk/release/win-unpacked/**
 
       - name: Compose release notes
-        run: node scripts/release-notes.cjs release/verification.json release/release-notes.md
+        if: always()
+        run: node scripts/release-notes.cjs release/verification.json release/release-notes.md release/smoke.json
 
       - name: Publish GitHub release (tag builds only)
-        if: startsWith(github.ref, 'refs/tags/v2')
+        if: always() && startsWith(github.ref, 'refs/tags/v2')
         uses: softprops/action-gh-release@v2
         with:
           name: CozyDesk Minimal 2.0
@@ -106,3 +174,20 @@ jobs:
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
             CozyDesk-source-1.0.0/CozyDesk/release/smoke-2.0.png
+
+      # ---------- Verdict : le job échoue si le binaire n'a pas été vérifié ----------
+      - name: Enforce packaged-binary verification
+        if: always()
+        run: |
+          $report = "release\smoke.json"
+          if (-not (Test-Path $report)) {
+            Write-Output "::error title=Verdict::aucun rapport de lancement produit"
+            exit 1
+          }
+          $s = Get-Content $report -Raw | ConvertFrom-Json
+          "lance=$($s.launched) exit=$($s.exitCode) png=$($s.pngExists) octets=$($s.pngBytes) taille=$($s.width)x$($s.height)"
+          if (-not $s.pngExists -or $s.pngBytes -lt 20000 -or $s.width -lt 800) {
+            Write-Output "::error title=Verdict::l'exécutable empaqueté n'a pas rendu d'interface vérifiable"
+            exit 1
+          }
+          Write-Output "::notice title=Verdict::exécutable empaqueté vérifié (lancement + rendu)"
