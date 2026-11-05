@@ -30,7 +30,10 @@ export default defineConfig(({ mode }) => ({
   base: './',
   plugins: [react(), ...(mode === 'development' ? [devCspPlugin()] : [])],
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src') }
+    alias: {
+      '@': path.resolve(__dirname, 'src/renderer'),
+      '@shared': path.resolve(__dirname, 'src/shared')
+    }
   },
   build: {
     outDir: 'dist',

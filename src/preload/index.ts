@@ -3,7 +3,7 @@
  * Aucune API Node n'est exposée : uniquement des fonctions IPC validées.
  */
 import { contextBridge, ipcRenderer } from 'electron';
-import type { CozyDeskApi, FileGrantDto } from '../src/types/ipc';
+import type { CozyDeskApi, FileGrantDto } from '../shared/types/ipc';
 
 function invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
   return ipcRenderer.invoke(channel, ...args) as Promise<T>;

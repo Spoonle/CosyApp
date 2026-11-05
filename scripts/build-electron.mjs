@@ -14,8 +14,8 @@ const common = {
 };
 
 const entries = [
-  { entryPoints: ['electron/main.ts'], outfile: 'dist-electron/main.cjs' },
-  { entryPoints: ['electron/preload.ts'], outfile: 'dist-electron/preload.cjs' }
+  { entryPoints: ['src/main/index.ts'], outfile: 'dist-electron/main.cjs' },
+  { entryPoints: ['src/preload/index.ts'], outfile: 'dist-electron/preload.cjs' }
 ];
 
 if (watch) {

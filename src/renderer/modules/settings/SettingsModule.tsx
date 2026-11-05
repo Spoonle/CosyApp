@@ -38,7 +38,7 @@ import { importLegacyData, scanLegacyData, type LegacyScanReport } from '@/servi
 import { ensureNotificationPermission } from '@/services/notifications/notify';
 import { toast } from '@/stores/toast';
 import { db } from '@/services/storage/db';
-import type { AppInfoDto } from '@/types/ipc';
+import type { AppInfoDto } from '@shared/types/ipc';
 import { chime } from '@/services/notifications/notify';
 import { WorkspaceSection } from './WorkspaceSection';
 
