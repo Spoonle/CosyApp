@@ -51,16 +51,6 @@ export function useDocumentVisible(): boolean {
   );
 }
 
-/** Valeur débounce (recherche, sauvegarde auto…). */
-export function useDebounced<T>(value: T, delayMs = 300): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(id);
-  }, [value, delayMs]);
-  return debounced;
-}
-
 /** Dimensions observées d'un élément. */
 export function useElementSize<T extends HTMLElement>(): [
   React.RefObject<T>,
@@ -81,9 +71,3 @@ export function useElementSize<T extends HTMLElement>(): [
   return [ref, size];
 }
 
-/** Titre du document quand une fenêtre Electron est prête. */
-export function useDocumentTitle(title: string): void {
-  useEffect(() => {
-    document.title = title;
-  }, [title]);
-}

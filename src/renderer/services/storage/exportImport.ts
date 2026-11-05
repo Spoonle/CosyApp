@@ -3,7 +3,7 @@
  * L'import valide chaque enregistrement, crée une sauvegarde préalable
  * et fusionne (upsert) sans jamais supprimer l'existant.
  */
-import { db, openDatabase } from './db';
+import { db } from './db';
 import { writeBackup } from './backup';
 import type { BaseRec } from '@/types/domain';
 
@@ -132,9 +132,4 @@ export async function importFromFile(): Promise<ImportReport> {
   }
   const bundle = validateBundle(parsed);
   return importBundle(bundle);
-}
-
-/** Utilitaire de test / récupération : réouvre proprement la base. */
-export async function ensureDbReady(): Promise<void> {
-  if (!db.isOpen()) await openDatabase();
 }

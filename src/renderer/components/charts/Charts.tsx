@@ -1,4 +1,6 @@
 /** Graphiques SVG légers (aucune dépendance). */
+import { clamp } from '@/services/dates/dateUtils';
+
 export function RingProgress({
   progress,
   size = 120,
@@ -14,7 +16,7 @@ export function RingProgress({
 }) {
   const r = (size - thickness) / 2;
   const c = 2 * Math.PI * r;
-  const clamped = Math.min(1, Math.max(0, progress));
+  const clamped = clamp(progress, 0, 1);
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>

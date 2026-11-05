@@ -1,5 +1,4 @@
 import { BrowserWindow, shell } from 'electron';
-import fs from 'node:fs';
 import path from 'node:path';
 import { appConfig } from '../services/config';
 
@@ -10,14 +9,10 @@ export function getMainWindow(): BrowserWindow | null {
 }
 
 export function createMainWindow(): BrowserWindow {
-  if (getMainWindow()) return getMainWindow()!;
+  const existing = getMainWindow();
+  if (existing) return existing;
 
-  const iconCandidates = [
-    path.join(__dirname, '../build/icon.png'),
-    path.join(__dirname, '../dist/icon.png'),
-    path.join(__dirname, '../public/icon.png')
-  ];
-  const icon = iconCandidates.find((p) => fs.existsSync(p));
+  const icon = appConfig.iconPath;
 
   const win = new BrowserWindow({
     width: 1440,

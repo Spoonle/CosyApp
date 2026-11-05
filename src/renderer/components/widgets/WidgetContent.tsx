@@ -25,6 +25,7 @@ import {
   MONTHS_FULL,
   WEEKDAYS_SHORT,
   weekNumber,
+  weekdayName,
   addDaysKey
 } from '@/services/dates/dateUtils';
 import { useNow } from '@/hooks';
@@ -89,7 +90,7 @@ function DateWidget(): React.ReactNode {
       <div>
         <div style={{ fontSize: 'var(--text-sm)', fontWeight: 650 }}>Semaine {weekNumber(d)}</div>
         <div className="text-muted" style={{ fontSize: 'var(--text-xs)' }}>
-          {WEEKDAYS_FULL_FR[d.getDay()]}
+          {weekdayName(d)}
         </div>
       </div>
       <MiniProgressBar label="Journée" value={dayProgress} />
@@ -98,7 +99,6 @@ function DateWidget(): React.ReactNode {
   );
 }
 
-const WEEKDAYS_FULL_FR = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
 function MiniProgressBar({ label, value }: { label: string; value: number }): React.ReactNode {
   return (

@@ -49,8 +49,6 @@ export interface SavedLayout {
 export type LayoutPresetId = 'minimal' | 'focus' | 'classic';
 
 export const GRID_COLS = 12;
-export const ROW_H = 92;
-export const GRID_GAP = 14;
 
 interface DashboardState {
   widgets: WidgetLayout[];

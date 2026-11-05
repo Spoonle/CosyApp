@@ -9,6 +9,7 @@ import {
   type TextareaHTMLAttributes
 } from 'react';
 import { X } from 'lucide-react';
+import { clamp } from '@/services/dates/dateUtils';
 
 /* ---------- Boutons ---------- */
 
@@ -279,7 +280,7 @@ export function EmptyState({
 /* ---------- Divers ---------- */
 
 export function ProgressBar({ value, label }: { value: number; label?: string }) {
-  const clamped = Math.min(100, Math.max(0, Math.round(value * 100)));
+  const clamped = Math.round(clamp(value, 0, 1) * 100);
   return (
     <div
       className="progress-track"

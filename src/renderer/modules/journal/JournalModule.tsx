@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
-  BookOpen,
   ChevronLeft,
   ChevronRight,
   Frown,
@@ -11,7 +10,7 @@ import {
   Trash2,
   Search
 } from 'lucide-react';
-import { EmptyState, IconButton, Input, Modal } from '@/components/glass';
+import { IconButton, Input } from '@/components/glass';
 import { db, nowTs, uid } from '@/services/storage/db';
 import type { JournalEntry, Mood } from '@/types/domain';
 import { confirmAction } from '@/stores/toast';
@@ -225,18 +224,5 @@ function DayEditor({
         </span>
       </div>
     </div>
-  );
-}
-
-/** Modal d'aide (non utilisée pour l'instant mais gardée pour l'extension). */
-export function JournalHelpModal({ open, onClose }: { open: boolean; onClose: () => void }): React.ReactNode {
-  return (
-    <Modal open={open} onClose={onClose} title="À propos du journal">
-      <div className="module-editor">
-        <EmptyState icon={<BookOpen size={24} />} title="Journal local">
-          Une entrée par jour, sauvegarde automatique, aucune donnée envoyée.
-        </EmptyState>
-      </div>
-    </Modal>
   );
 }

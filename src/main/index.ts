@@ -71,20 +71,6 @@ function maybeRunSmokeTest(win: Electron.BrowserWindow): void {
     );
     setTimeout(async () => {
       try {
-        if (process.argv.includes('--diagnose')) {
-          const diag = await win.webContents.executeJavaScript(`(() => {
-            const cs = getComputedStyle(document.body);
-            const brand = document.querySelector('.titlebar-brand span');
-            return JSON.stringify({
-              dataset: { ...document.documentElement.dataset },
-              bodyColor: cs.color,
-              brandColor: brand ? getComputedStyle(brand).color : 'absent',
-              textRgb: getComputedStyle(document.documentElement).getPropertyValue('--text-rgb'),
-              fonts: cs.fontFamily.slice(0, 80)
-            });
-          })()`);
-          console.log('[diag]', diag);
-        }
         const image = await win.webContents.capturePage();
         const { writeFile, mkdir } = await import('node:fs/promises');
         const path = await import('node:path');

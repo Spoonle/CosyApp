@@ -10,6 +10,11 @@ export const WEEKDAYS_FULL = [
   'samedi',
   'dimanche'
 ];
+/** Nom complet du jour de la semaine (dimanche = index 0, comme Date#getDay). */
+export function weekdayName(d: Date): string {
+  return WEEKDAYS_FULL[(d.getDay() + 6) % 7];
+}
+
 export const MONTHS_FULL = [
   'janvier',
   'février',
@@ -51,14 +56,6 @@ export function addDaysKey(key: string, n: number): string {
   return dateKey(addDays(parseKey(key), n));
 }
 
-export function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
 /** Lundi de la semaine contenant d. */
 export function startOfWeek(d: Date): Date {
   const copy = new Date(d);
@@ -66,14 +63,6 @@ export function startOfWeek(d: Date): Date {
   copy.setDate(copy.getDate() - day);
   copy.setHours(0, 0, 0, 0);
   return copy;
-}
-
-export function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-export function endOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
 }
 
 /** Grille du mois : 5 ou 6 semaines × 7 jours, commence lundi. */
@@ -128,10 +117,6 @@ export function fullDate(d: Date): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function shortDate(d: Date): string {
-  return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(d);
-}
-
 export function monthTitle(d: Date): string {
   const s = `${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`;
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -154,11 +139,6 @@ export function minutesToClock(min: number): string {
 export function clockToMinutes(clock: string): number {
   const [h, m] = clock.split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
-}
-
-/** Heure affichée type 14:05. */
-export function timeHM(d: Date): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 export function formatClock(ms: number): string {

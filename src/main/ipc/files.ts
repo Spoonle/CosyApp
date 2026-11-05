@@ -10,7 +10,7 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { appConfig } from '../services/config';
-import { extensionOf, isFileKind, isSafeAbsolutePath, type FileKind } from './validate';
+import { extensionOf, isSafeAbsolutePath, type FileKind } from './validate';
 
 export interface FileGrant {
   path: string;
@@ -215,10 +215,6 @@ async function pruneBackups(dir: string): Promise<void> {
   } catch (err) {
     console.warn('[cozydesk:backup] nettoyage impossible :', err);
   }
-}
-
-export function kindGuard(value: unknown): value is FileKind {
-  return isFileKind(value);
 }
 
 export function backupsDir(): string {

@@ -6,13 +6,6 @@ import path from 'node:path';
 
 export type FileKind = 'audio' | 'image' | 'video' | 'json';
 
-export const KIND_EXTENSIONS: Record<FileKind, string[]> = {
-  audio: ['mp3', 'wav', 'ogg', 'oga', 'flac', 'm4a', 'aac', 'opus', 'weba', 'webm'],
-  image: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'bmp'],
-  video: ['mp4', 'webm', 'mov', 'mkv', 'm4v'],
-  json: ['json']
-};
-
 const MAX_READ_BYTES = 100 * 1024 * 1024; // 100 Mo (référence pour la cohérence IPC)
 export { MAX_READ_BYTES };
 const MAX_GRANT_PATHS = 500;

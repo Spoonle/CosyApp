@@ -1,6 +1,7 @@
 /** Fenêtres flottantes internes à CozyDesk (pas les fenêtres natives). */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { clamp } from '@/services/dates/dateUtils';
 import { useSettingsStore } from '@/stores/settings';
 
 export type SnapZone = 'left' | 'right' | 'top';
@@ -246,8 +247,8 @@ export const useWindowStore = create<WindowActions>()(
                   closing: false,
                   w: width,
                   h: height,
-                  x: Math.min(Math.max(w.x, bounds.x), bounds.x + bounds.w - width),
-                  y: Math.min(Math.max(w.y, bounds.y), bounds.y + bounds.h - height)
+                  x: clamp(w.x, bounds.x, bounds.x + bounds.w - width),
+                  y: clamp(w.y, bounds.y, bounds.y + bounds.h - height)
                 };
               })
           };

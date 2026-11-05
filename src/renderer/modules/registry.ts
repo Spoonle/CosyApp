@@ -143,6 +143,3 @@ export const MODULE_MAP: Record<string, ModuleDef> = Object.fromEntries(
   MODULES.map((m) => [m.id, m])
 );
 
-export function moduleTitle(id: string): string {
-  return MODULE_MAP[id]?.title ?? id;
-}

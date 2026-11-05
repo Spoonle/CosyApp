@@ -4,14 +4,6 @@
  */
 import type { Track } from '@/types/domain';
 
-export interface PlayerHandle {
-  load(url: string): void;
-  play(): Promise<void>;
-  pause(): void;
-  seek(sec: number): void;
-  setVolume(v: number): void;
-}
-
 type Listener = () => void;
 
 class MusicPlayer {

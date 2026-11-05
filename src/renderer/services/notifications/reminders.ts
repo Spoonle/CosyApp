@@ -67,9 +67,3 @@ export function startReminderService(): void {
   timer = window.setInterval(() => void check(), 30_000);
 }
 
-export function stopReminderService(): void {
-  if (timer !== null) {
-    window.clearInterval(timer);
-    timer = null;
-  }
-}

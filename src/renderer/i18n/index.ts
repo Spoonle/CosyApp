@@ -32,11 +32,7 @@ const LOCALES: Record<string, Dictionary> = {
 
 export type LocaleId = keyof typeof LOCALES;
 
-let currentLocale: LocaleId = 'fr';
-
-export function setLocale(locale: LocaleId): void {
-  if (LOCALES[locale]) currentLocale = locale;
-}
+const currentLocale: LocaleId = 'fr';
 
 /**
  * Traduction. La clé FR est la valeur par défaut : une locale absente

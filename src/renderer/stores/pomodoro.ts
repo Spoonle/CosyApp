@@ -6,7 +6,6 @@ import {
   initialPomodoroState,
   pause as enginePause,
   reconcile as engineReconcile,
-  remainingMs,
   reset as engineReset,
   skip as engineSkip,
   start as engineStart
@@ -15,7 +14,6 @@ import { db, nowTs, uid } from '@/services/storage/db';
 import type { PomodoroSession } from '@/types/domain';
 import { useSettingsStore, type PomodoroSettings } from '@/stores/settings';
 import { notifyPomodoro, chime } from '@/services/notifications/notify';
-import { formatPhase } from '@/i18n';
 
 function config(): PomodoroSettings {
   return useSettingsStore.getState().pomodoro;
@@ -141,13 +139,3 @@ export const usePomodoroStore = create<PomodoroStore>()(
     }
   )
 );
-
-/** Temps restant affiché (abonné à un tick d'affichage). */
-export function pomodoroRemaining(now: number): number {
-  const st = usePomodoroStore.getState().state;
-  return remainingMs(st, now);
-}
-
-export function phaseLabel(phase: string): string {
-  return formatPhase(phase);
-}
