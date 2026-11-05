@@ -93,7 +93,7 @@ plus atteindre `src/main` par inadvertance.
 | Dépendance | Action | Raison |
 |---|---|---|
 | `music-metadata` | 10.9.1 → **12.3.4** | advisory : boucle infinie (ASF) sur un fichier piégé ; `parseBlob` vérifié sur un WAV réel |
-| autres (35) | aucune | toutes utilisées : `cli`/`music-metadata` vérifiés par recherche d'import statique **et** dynamique |
+| autres (30) | aucune | toutes utilisées : `cli`/`music-metadata` vérifiés par recherche d'import statique **et** dynamique |
 
 Aucune dépendance ajoutée, aucune supprimée. `@testing-library/dom` est conservé :
 c'est une dépendance *peer* de `@testing-library/react` v16, indispensable au
@@ -103,7 +103,7 @@ rendu des tests même sans import direct.
 
 **Vérifié, inchangé et conforme** : `contextIsolation: true`, `sandbox: true`,
 `nodeIntegration: false`, `webSecurity: true`, preload minimal (une fonction par
-besoin), 11 canaux IPC tous validés, `shell:openExternal` limité à `https:`,
+besoin), 13 canaux IPC tous validés, `shell:openExternal` limité à `https:`,
 navigation et `window.open` bloqués, permissions limitées aux notifications,
 protocole `cozydesk-file:` en liste blanche (403 hors liste), écritures limitées
 aux chemins issus d'une boîte d'enregistrement, sauvegardes confinées à
