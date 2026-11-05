@@ -167,6 +167,31 @@ jobs:
             Write-Output "::error title=Archive source::archive trop petite ($size octets)"
             throw "archive source incomplète"
           }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+          try {
+            $entries = $archive.Entries | ForEach-Object { $_.FullName }
+          } finally {
+            $archive.Dispose()
+          }
+          $required = @(
+            "package.json", "electron-builder.yml", "tsconfig.json",
+            "src/stores/dashboard.ts", "src/stores/settings.ts",
+            "src/components/dock/Dock.tsx", "tests/layout.test.ts",
+            "tests/modules.test.tsx", "docs/QA-FINAL-2.0.md"
+          )
+          $missing = @($required | Where-Object { $entries -notcontains $_ })
+          $forbidden = @($entries | Where-Object { $_ -like "*node_modules*" -or $_ -like "*dist/*" -or $_ -like "*release/*" })
+          "entrées zip : $($entries.Count)"
+          if ($missing.Count -gt 0) {
+            Write-Output "::error title=Archive source::entrées manquantes : $($missing -join ', ')"
+            throw "archive source incomplète"
+          }
+          if ($forbidden.Count -gt 0) {
+            Write-Output "::error title=Archive source::contenu interdit (build/node_modules) : $($forbidden[0])"
+            throw "archive source polluée"
+          }
+          Write-Output "::notice title=Archive source::$($entries.Count) entrées, 9 fichiers clés présents, aucun artefact de build"
           Write-Output "::notice title=Archive source::CozyDesk-2.0-Final-Source.zip ($size octets)"
 
       # ---------- Diagnostics et publication ----------

@@ -12,12 +12,12 @@ du code de ce dépôt) :
 
 **https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0**
 
-| Fichier | Taille exacte | Rôle |
+| Fichier | Taille (indicative) | Rôle |
 |---|---|---|
-| `CozyDesk-2.0-Final-Portable.exe` | 81 681 579 octets | portable, aucune installation |
-| `CozyDesk-2.0-Final-Setup.exe` | 81 895 868 octets | installateur (dossier au choix, raccourcis bureau + menu Démarrer) |
-| `CozyDesk-2.0-Final-Source.zip` | ≈ 330 Ko | code source exact utilisé pour cette compilation (sources, tests, docs) |
-| `smoke-2.0.png` | ≈ 868 Ko | capture du binaire empaqueté en cours d'exécution (1024×720) |
+| `CozyDesk-2.0-Final-Portable.exe` | ≈ 78 Mo | portable, aucune installation |
+| `CozyDesk-2.0-Final-Setup.exe` | ≈ 78 Mo | installateur (dossier au choix, raccourcis bureau + menu Démarrer) |
+| `CozyDesk-2.0-Final-Source.zip` | ≈ 328 Ko | code source exact utilisé pour cette compilation (sources, tests, docs) |
+| `smoke-2.0.png` | ≈ 848 Ko | capture du binaire empaqueté en cours d'exécution (1024×720) |
 
 L'ancien exécutable 1.0 n'est ni renommé, ni déplacé, ni écrasé.
 
@@ -98,7 +98,7 @@ Tests ajoutés dans cette phase :
 |---|---|
 | Contenu de `app.asar` (`scripts/verify-package.cjs`) | 42 entrées — **9/9** contrôles |
 | Lancement de l'exécutable empaqueté | `exit=0` |
-| Rendu de l'interface | capture 868 042 octets, 1024×720 |
+| Rendu de l'interface | capture ≈ 848 Ko, 1024×720 |
 | Création du répertoire de données | `%APPDATA%\CozyDesk` |
 | Présence des trois livrables | vérifiée par une barrière de fin de job |
 

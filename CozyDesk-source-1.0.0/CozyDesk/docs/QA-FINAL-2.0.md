@@ -74,17 +74,17 @@ chemin visible (bouton de fenêtre, réglage unique Bureau → Ambiance).
 ## 5. Compilation Windows et vérification du binaire
 
 Exécution CI de référence : workflow « Build CozyDesk 2.0 (Windows) », tag `v2.0.0`,
-conclusion **success**. Les tailles ci-dessous sont celles des exécutables, stables
-d’une compilation à l’autre ; la taille de l’archive source est indiquée de façon
-indicative puisqu’elle contient la documentation, régénérée à chaque compilation.
+conclusion **success**. Les tailles sont indicatives : electron-builder n’est pas reproductible à l’octet
+(quelques octets d’écart entre deux compilations du même commit), et l’archive
+source contient la documentation, régénérée à chaque compilation.
 
 | Élément | Verdict | Preuve |
 |---|---|---|
 | Compilation Windows locale | NON EXÉCUTÉ | environnement Linux sans runtime Electron Windows ni `wine` ; compilation assurée par le runner Windows de la CI |
 | Tests dans le pipeline | PASS | `npm run typecheck`, `lint`, `test` (143 tests) exécutés sur le runner avant empaquetage |
-| `CozyDesk-2.0-Final-Portable.exe` | PASS | produit, **81 681 579 octets**, annoté `notice Livrable` |
-| `CozyDesk-2.0-Final-Setup.exe` | PASS | produit, **81 895 868 octets**, annoté `notice Livrable` |
-| `CozyDesk-2.0-Final-Source.zip` | PASS | produit (≈ 330 Ko), contenu testé par barrière de taille et par inspection du zip |
+| `CozyDesk-2.0-Final-Portable.exe` | PASS | produit, **≈ 78 Mo**, annoté `notice Livrable` |
+| `CozyDesk-2.0-Final-Setup.exe` | PASS | produit, **≈ 78 Mo**, annoté `notice Livrable` |
+| `CozyDesk-2.0-Final-Source.zip` | PASS | produit (≈ 330 Ko) ; contenu contrôlé par barrière de taille et par vérification des entrées du zip |
 | Contenu réel de `app.asar` | PASS | `scripts/verify-package.cjs` : 42 entrées (1 CSS, 33 JS), **9/9 contrôles** |
 | Lancement du binaire empaqueté | PASS | `lance=True exit=0` |
 | Rendu de l'interface | PASS | capture 868 042 octets en 1024×720, publiée dans la release |
