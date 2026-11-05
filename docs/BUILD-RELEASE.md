@@ -19,7 +19,7 @@ dist/ + dist-electron/ + package.json ──electron-builder──► release/
 | `npm ci` | installation reproductible depuis `package-lock.json` | oui |
 | `npm run typecheck` | `tsc` rendu + `tsc` processus principal | oui |
 | `npm run lint` | ESLint 9, zéro avertissement | oui |
-| `npm run test` | Vitest, 15 fichiers | oui |
+| `npm run test` | Vitest, 16 fichiers / 150 tests | oui |
 | `npm run build` | tout ci-dessus + `dist/` + `dist-electron/` | oui |
 | `npm run package` | `release/CozyDesk-2.0-Final-Portable.exe` + `-Setup.exe` | CI Windows uniquement |
 | `npm run package:nosign` | variante sans signature, pour Linux sans `wine` | non testé localement |
@@ -58,7 +58,7 @@ La voie de référence reste GitHub Actions sur un runner Windows.
    `smoke.json` ;
 7. contrôle que `%APPDATA%\CozyDesk` a été créé (persistance) ;
 8. **archive source** `CozyDesk-2.0-Final-Source.zip` avec vérification de ses
-   entrées (9 fichiers clés présents, aucun `node_modules`/`dist`/`release`) ;
+   entrées (13 fichiers clés présents, aucun `node_modules`/`dist`/`release`) ;
 9. publication de la release **uniquement sur tag** ;
 10. barrière finale : les trois livrables doivent exister et la capture doit être
     valide, sinon le job échoue.

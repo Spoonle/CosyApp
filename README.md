@@ -86,7 +86,7 @@ et les données vivent dans l'IndexedDB du navigateur.
 | `npm run build` | typecheck → lint → tests → `dist-electron/` → `dist/` |
 | `npm run typecheck` | `tsc` sur le rendu puis sur le processus principal |
 | `npm run lint` | ESLint 9 (aucun avertissement toléré) |
-| `npm run test` | Vitest (15 fichiers, 143 tests) — `test:watch` en continu |
+| `npm run test` | Vitest (16 fichiers, 150 tests) — `test:watch` en continu |
 | `npm run package` | build + `electron-builder --win` (portable + installateur) |
 | `npm run package:dir` | paquet non compressé (`release/win-unpacked`) |
 | `npm run package:nosign` | paquet Windows sans signature/édition de l'exe (Linux sans wine) |

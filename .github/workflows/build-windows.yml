@@ -151,11 +151,11 @@ jobs:
           $zip = Join-Path $PWD "release\CozyDesk-2.0-Final-Source.zip"
           if (Test-Path $zip) { Remove-Item $zip }
           $include = @(
-            "src", "electron", "tests", "scripts", "build", "docs",
+            "src", "tests", "scripts", "build", "docs", ".github",
             "package.json", "package-lock.json", "tsconfig.json",
-            "tsconfig.electron.json", "tsconfig.node.json", "vite.config.ts",
-            "vitest.config.ts", "electron-builder.yml", "eslint.config.js",
-            "index.html", "README.md", "preview.config.mjs"
+            "tsconfig.electron.json", "vite.config.ts", "electron-builder.yml",
+            "eslint.config.mjs", "index.html", "README.md", "LICENSE",
+            "CONTRIBUTING.md", "preview.config.mjs", ".gitignore"
           ) | Where-Object { Test-Path $_ }
           Compress-Archive -Path $include -DestinationPath $zip -CompressionLevel Optimal
           $size = (Get-Item $zip).Length
@@ -173,9 +173,12 @@ jobs:
           }
           $required = @(
             "package.json", "electron-builder.yml", "tsconfig.json",
-            "src/stores/dashboard.ts", "src/stores/settings.ts",
-            "src/components/dock/Dock.tsx", "tests/layout.test.ts",
-            "tests/modules.test.tsx", "docs/QA-FINAL-2.0.md"
+            "src/main/index.ts", "src/preload/index.ts",
+            "src/shared/types/ipc.ts",
+            "src/renderer/stores/dashboard.ts", "src/renderer/stores/settings.ts",
+            "src/renderer/components/dock/Dock.tsx",
+            "tests/layout.test.ts", "tests/modules.test.tsx",
+            "docs/QA-FINAL-2.0.md", "LICENSE"
           )
           $missing = @($required | Where-Object { $entries -notcontains $_ })
           $forbidden = @($entries | Where-Object { $_ -like "*node_modules*" -or $_ -like "*dist/*" -or $_ -like "*release/*" })
@@ -188,7 +191,7 @@ jobs:
             Write-Output "::error title=Archive source::contenu interdit (build/node_modules) : $($forbidden[0])"
             throw "archive source polluée"
           }
-          Write-Output "::notice title=Archive source::$($entries.Count) entrées, 9 fichiers clés présents, aucun artefact de build"
+          Write-Output "::notice title=Archive source::$($entries.Count) entrées, 13 fichiers clés présents, aucun artefact de build"
           Write-Output "::notice title=Archive source::CozyDesk-2.0-Final-Source.zip ($size octets)"
 
       # ---------- Diagnostics et publication ----------
