@@ -59,9 +59,17 @@
   --z-palette: 450;
   --z-toast: 500;
 
+  /* --- Géométrie de l'espace de travail (2.0) --- */
+  --titlebar-h: 34px;      /* barre de titre fine */
+  --dock-reserve: 88px;    /* espace réservé au dock (calculé par le JS) */
+  --dock-side: 76px;       /* dock ancré à gauche/droite */
+  --ws-gap: 14px;          /* espacement de la grille (piloté par les réglages) */
+  --ws-margin: 34px;       /* marge latérale du bureau */
+
   /* --- Réglages utilisateur (pilotés par settingsStore) --- */
   --user-blur-mult: 1;    /* 0 – 1.6 : intensité du flou */
   --user-alpha-mult: 1;   /* 0.6 – 1.4 : intensité de la transparence */
+
 
   /* --- Profil graphique (piloté par settingsStore) --- */
   --profile-blur-mult: 1; /* Haute qualité 1 / Basculée .6 / Performance .25 */
@@ -78,7 +86,11 @@
 
   /* --- Ombres --- */
   --shadow-sm: 0 2px 10px rgb(0 0 0 / 0.18);
-  --shadow-md: 0 8px 28px rgb(0 0 0 / 0.24);
-  --shadow-lg: 0 18px 56px rgb(0 0 0 / 0.34);
-  --shadow-window: 0 24px 80px rgb(0 0 0 / 0.5), 0 4px 18px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 8px 26px rgb(0 0 0 / 0.22);
+  --shadow-lg: 0 20px 60px rgb(0 0 0 / 0.32);
+  --shadow-window:
+    0 2px 6px rgb(0 0 0 / 0.18),
+    0 18px 48px rgb(0 0 0 / 0.34),
+    0 40px 110px rgb(0 0 0 / 0.32);
+  --shadow-dock: 0 10px 34px rgb(0 0 0 / 0.3);
 }

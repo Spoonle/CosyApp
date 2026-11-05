@@ -40,11 +40,12 @@ import { toast } from '@/stores/toast';
 import { db } from '@/services/storage/db';
 import type { AppInfoDto } from '@/types/ipc';
 import { chime } from '@/services/notifications/notify';
+import { WorkspaceSection } from './WorkspaceSection';
 
-type Section = 'apparence' | 'performances' | 'general' | 'donnees' | 'apropos';
+type Section = 'espace' | 'apparence' | 'performances' | 'general' | 'donnees' | 'apropos';
 
 export default function SettingsModule(): React.ReactNode {
-  const [section, setSection] = useState<Section>('apparence');
+  const [section, setSection] = useState<Section>('espace');
 
   return (
     <div className="module-root">
@@ -53,6 +54,9 @@ export default function SettingsModule(): React.ReactNode {
       </div>
       <div className="module-body">
         <div className="segmented" style={{ marginBottom: 16 }}>
+          <button data-active={section === 'espace'} onClick={() => setSection('espace')}>
+            Bureau
+          </button>
           <button data-active={section === 'apparence'} onClick={() => setSection('apparence')}>
             Apparence
           </button>
@@ -70,6 +74,7 @@ export default function SettingsModule(): React.ReactNode {
           </button>
         </div>
 
+        {section === 'espace' && <WorkspaceSection />}
         {section === 'apparence' && <AppearanceSection />}
         {section === 'performances' && <PerformanceSection />}
         {section === 'general' && <GeneralSection />}

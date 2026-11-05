@@ -1,92 +1,125 @@
-/** Dock flottant : accès aux modules, indicateur de fenêtres ouvertes. */
+/**
+ * Dock 2.0 — un lanceur discret, pas une barre d'outils.
+ * Icônes réduites, survol sobre, infobulles, indicateur d'activité,
+ * auto-masquage optionnel, position configurable, raccourcis personnalisables.
+ * Tous les modules restent accessibles via le lanceur et la palette.
+ */
 import clsx from 'clsx';
-import { useMemo } from 'react';
-import { Search, Settings, X } from 'lucide-react';
-import { MODULES } from '@/modules/registry';
+import { useEffect, useMemo, useState } from 'react';
+import { Grid2x2, Search, Settings } from 'lucide-react';
+import { MODULE_MAP, MODULES } from '@/modules/registry';
 import { useWindowStore } from '@/stores/windows';
 import { usePaletteStore } from '@/stores/palette';
-import { toast } from '@/stores/toast';
+import { useSettingsStore } from '@/stores/settings';
+import { DockLauncher } from './DockLauncher';
 
 export function Dock(): React.ReactNode {
   const windows = useWindowStore((s) => s.windows);
-  const open = useWindowStore((s) => s.open);
-  const restore = useWindowStore((s) => s.restore);
   const close = useWindowStore((s) => s.close);
+  const restore = useWindowStore((s) => s.restore);
   const openPalette = usePaletteStore((s) => s.openPalette);
+  const dock = useSettingsStore((s) => s.workspace.dock);
 
-  const dockModules = useMemo(
-    () => MODULES.filter((m) => m.dock && m.id !== 'settings'),
-    []
-  );
+  const [launcherOpen, setLauncherOpen] = useState(false);
+  const [revealed, setRevealed] = useState(!dock.autoHide);
 
-  const activate = (id: string, defaultSize: { w: number; h: number }): void => {
+  // L'auto-masquage se réévalue quand le réglage change.
+  useEffect(() => {
+    setRevealed(!dock.autoHide);
+  }, [dock.autoHide, dock.position, dock.visible]);
+
+  const shortcuts = useMemo(() => {
+    const ids = dock.shortcuts.filter((id) => MODULE_MAP[id] !== undefined);
+    const list = ids.map((id) => MODULE_MAP[id]);
+    return list.length > 0 ? list : MODULES.slice(0, 6);
+  }, [dock.shortcuts]);
+
+  if (!dock.visible) return null;
+
+  const activate = (id: string): void => {
+    const size = MODULE_MAP[id].defaultSize;
     const existing = useWindowStore.getState().windows.find((w) => w.id === id);
     if (existing && !existing.closing) {
       if (existing.minimized) restore(id);
-      else close(id); // clic sur module déjà ouvert et visible → fermeture
+      else close(id);
     } else {
-      open(id, defaultSize);
+      useWindowStore.getState().open(id, size);
     }
   };
 
+  const hidden = dock.autoHide && !revealed;
+
   return (
-    <nav className="dock glass-float" aria-label="Dock CozyDesk">
-      <button
-        className="dock-item dock-palette"
-        data-tooltip="Palette de commandes — Ctrl+K"
-        aria-label="Palette de commandes"
-        onClick={() => openPalette(true)}
+    <>
+      {dock.autoHide && <div className="dock-hot" data-position={dock.position} />}
+      <nav
+        className={clsx('dock', hidden && 'is-hidden')}
+        data-position={dock.position}
+        data-autohide={dock.autoHide || undefined}
+        data-revealed={revealed || undefined}
+        aria-label="Dock CozyDesk"
+        onMouseEnter={() => setRevealed(true)}
+        onMouseLeave={() => dock.autoHide && setRevealed(false)}
+        onFocusCapture={() => setRevealed(true)}
       >
-        <Search size={19} strokeWidth={2.2} />
-      </button>
-      <span className="dock-separator" />
-      {dockModules.map((m) => {
-        const win = windows.find((w) => w.id === m.id && !w.closing);
-        const running = win !== undefined;
-        const Icon = m.icon;
-        return (
-          <button
-            key={m.id}
-            className={clsx('dock-item', running && 'running')}
-            data-tooltip={m.title}
-            aria-label={m.title}
-            onClick={() => activate(m.id, m.defaultSize)}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              if (running) {
-                close(m.id);
-                toast('info', `${m.title} fermé`);
-              }
-            }}
-          >
-            <Icon size={21} strokeWidth={2} />
-            <span className="dock-dot" aria-hidden="true" />
-            {running && !win?.minimized && (
-              <span
-                className="dock-close"
-                role="button"
-                aria-label={`Fermer ${m.title}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  close(m.id);
-                }}
-              >
-                <X size={9} strokeWidth={3} />
-              </span>
-            )}
-          </button>
-        );
-      })}
-      <span className="dock-separator" />
-      <button
-        className={clsx('dock-item', windows.some((w) => w.id === 'settings') && 'running')}
-        data-tooltip="Paramètres"
-        aria-label="Paramètres"
-        onClick={() => activate('settings', { w: 880, h: 640 })}
-      >
-        <Settings size={20} strokeWidth={2.1} />
-        <span className="dock-dot" aria-hidden="true" />
-      </button>
-    </nav>
+        <button
+          className="dock-item dock-accent"
+          data-tooltip="Rechercher — Ctrl K"
+          aria-label="Palette de commandes"
+          onClick={() => openPalette(true)}
+        >
+          <Search size={17} strokeWidth={2.1} />
+        </button>
+
+        <button
+          className="dock-item"
+          data-tooltip="Tous les modules"
+          aria-label="Tous les modules"
+          onClick={() => setLauncherOpen(true)}
+        >
+          <Grid2x2 size={17} strokeWidth={2} />
+        </button>
+
+        <span className="dock-separator" aria-hidden="true" />
+
+        {shortcuts.map((m) => {
+          const win = windows.find((w) => w.id === m.id && !w.closing);
+          const running = win !== undefined;
+          const Icon = m.icon;
+          return (
+            <button
+              key={m.id}
+              className={clsx('dock-item', running && 'running')}
+              data-active={running && !win?.minimized ? true : undefined}
+              data-tooltip={m.title}
+              aria-label={m.title}
+              aria-pressed={running}
+              onClick={() => activate(m.id)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                if (running) close(m.id);
+              }}
+            >
+              <Icon size={18} strokeWidth={1.9} />
+              <span className="dock-dot" aria-hidden="true" />
+            </button>
+          );
+        })}
+
+        <span className="dock-separator" aria-hidden="true" />
+
+        <button
+          className={clsx('dock-item', windows.some((w) => w.id === 'settings') && 'running')}
+          data-tooltip="Paramètres"
+          aria-label="Paramètres"
+          onClick={() => activate('settings')}
+        >
+          <Settings size={17} strokeWidth={1.9} />
+          <span className="dock-dot" aria-hidden="true" />
+        </button>
+      </nav>
+
+      {launcherOpen && <DockLauncher onClose={() => setLauncherOpen(false)} />}
+    </>
   );
 }

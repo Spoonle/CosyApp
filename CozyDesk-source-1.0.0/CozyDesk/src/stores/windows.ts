@@ -1,6 +1,7 @@
 /** Fenêtres flottantes internes à CozyDesk (pas les fenêtres natives). */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useSettingsStore } from '@/stores/settings';
 
 export type SnapZone = 'left' | 'right' | 'top';
 
@@ -26,16 +27,33 @@ export interface SnapPreviewState {
   rect: WindowRect;
 }
 
-/** Bornes de l'espace de travail (sous la barre de titre, au-dessus du dock). */
-export const TOPBAR_H = 46;
-export const DOCK_RESERVE = 104;
+/** Hauteur de la barre de titre (fines, discrète, en 2.0). */
+export const TOPBAR_H = 34;
 
+/** Réserve d'espace occupée par le dock selon sa position et son auto-masquage. */
+export function dockReserve(): number {
+  const dock = useSettingsStore.getState().workspace.dock;
+  if (!dock.visible) return 18;
+  if (dock.position !== 'bottom') return 18;
+  return dock.autoHide ? 36 : 88;
+}
+
+/** Réserve latérale quand le dock est ancré à gauche ou à droite. */
+function dockSideReserve(): number {
+  const dock = useSettingsStore.getState().workspace.dock;
+  if (!dock.visible || dock.position === 'bottom') return 0;
+  return dock.autoHide ? 24 : 76;
+}
+
+/** Bornes de l'espace de travail (sous la barre de titre, au-dessus du dock). */
 export function workspaceBounds(): WindowRect {
+  const reserve = dockReserve();
+  const side = dockSideReserve();
   return {
-    x: 12,
+    x: 12 + (useSettingsStore.getState().workspace.dock.position === 'left' ? side : 0),
     y: TOPBAR_H + 10,
-    w: Math.max(320, window.innerWidth - 24),
-    h: Math.max(240, window.innerHeight - TOPBAR_H - 10 - DOCK_RESERVE)
+    w: Math.max(320, window.innerWidth - 24 - side),
+    h: Math.max(240, window.innerHeight - TOPBAR_H - 10 - reserve)
   };
 }
 

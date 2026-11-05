@@ -1,0 +1,75 @@
+name: Build CozyDesk Minimal 2.0 (Windows)
+
+# Produit les deux artefacts Windows à partir du code source réel :
+#   CozyDesk-Minimal-2.0-Portable.exe
+#   CozyDesk-Minimal-2.0-Setup.exe
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v2*'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: CozyDesk-source-1.0.0/CozyDesk
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: CozyDesk-source-1.0.0/CozyDesk/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck, lint, tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test
+
+      - name: Build frontend + Electron main
+        run: |
+          npm run build:electron
+          npx vite build
+
+      - name: Package Windows apps (portable + NSIS installer)
+        run: npx electron-builder --win --x64 --publish never
+
+      - name: List release output
+        run: Get-ChildItem release | Select-Object Name, Length
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CozyDesk-Minimal-2.0-Windows
+          if-no-files-found: error
+          path: |
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/win-unpacked/**
+
+      - name: Publish GitHub release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/v2')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CozyDesk Minimal 2.0
+          body: |
+            CozyDesk Minimal 2.0 — bureau premium minimaliste.
+
+            - `CozyDesk-Minimal-2.0-Portable.exe` : version portable, aucune installation.
+            - `CozyDesk-Minimal-2.0-Setup.exe` : installateur (choix du répertoire, raccourcis).
+
+            Compilé depuis les sources de ce dépôt sur un runner Windows officiel.
+          files: |
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe

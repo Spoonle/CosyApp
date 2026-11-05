@@ -193,3 +193,12 @@
 :root[data-profile='performance'] .ambient-blob {
   animation: none;
 }
+
+/* --- Intensité d'animation « réduite » (réglage 2.0) --- */
+:root[data-motion='reduced'] .floating-window,
+:root[data-motion='reduced'] .toast,
+:root[data-motion='reduced'] .menu,
+:root[data-motion='reduced'] .modal-panel,
+:root[data-motion='reduced'] .palette-panel {
+  animation-duration: 120ms !important;
+}

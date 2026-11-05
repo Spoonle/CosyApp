@@ -108,12 +108,14 @@ describe('store des fenêtres', () => {
 });
 
 describe('store du dashboard', () => {
-  it('dispose d’une disposition par défaut cohérente', () => {
+  it('dispose d’une disposition par défaut minimale et cohérente', () => {
+    // 2.0 : trois éléments seulement — le reste est optionnel.
     const { widgets } = useDashboardStore.getState();
-    expect(widgets.length).toBeGreaterThan(5);
+    expect(widgets.length).toBe(3);
     for (const w of widgets) {
       expect(w.x + w.w).toBeLessThanOrEqual(12);
       expect(w.w).toBeGreaterThanOrEqual(WIDGET_SIZES[w.type].minW);
+      expect(w.h).toBeGreaterThanOrEqual(WIDGET_SIZES[w.type].minH);
     }
   });
 

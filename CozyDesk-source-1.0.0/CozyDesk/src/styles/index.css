@@ -8,5 +8,6 @@
 @import './shell.css';
 @import './windows.css';
 @import './dock.css';
+@import './workspace.css';
 @import './widgets.css';
 @import './modules.css';

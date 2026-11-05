@@ -18,11 +18,11 @@ compression: normal
 
 win:
   icon: build/icon.ico
-  # signAndEditExecutable: false → construire sous Linux sans wine (l'incrustation
-  # de l'icône dans le .exe nécessite wine). Sur une machine Windows, retirez
-  # cette ligne (ou lancez `npm run dist`) pour obtenir l'exe avec l'icône
-  # CozyDesk. L'icône de l'installateur reste appliquée dans tous les cas.
-  signAndEditExecutable: false
+  # CozyDesk Minimal 2.0 : artefacts distincts de la version 1.0
+  # (l'ancien exécutable reste intact, rien n'est écrasé).
+  # L'incrustation de l'icône dans le .exe s'effectue nativement sous Windows.
+  # Pour compiler sous Linux sans wine : `npm run dist:win:nosign`.
+  signAndEditExecutable: true
   target:
     - target: nsis
       arch: [x64]
@@ -36,8 +36,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: CozyDesk
-  artifactName: CozyDesk-Setup-${version}.${ext}
+  shortcutName: CozyDesk Minimal 2.0
+  artifactName: CozyDesk-Minimal-2.0-Setup.${ext}
 
 portable:
-  artifactName: CozyDesk-Portable-${version}.${ext}
+  artifactName: CozyDesk-Minimal-2.0-Portable.${ext}

@@ -1,8 +1,8 @@
 {
   "name": "cozydesk",
   "productName": "CozyDesk",
-  "version": "1.0.0",
-  "description": "CozyDesk — espace de travail desktop premium : focus Pomodoro, tâches, notes, musique, ambiance sonore, habitudes et statistiques. 100% local.",
+  "version": "2.0.0",
+  "description": "CozyDesk Minimal 2.0 — bureau premium minimaliste : horloge centrale, widgets transparents, dock discret. 100% local.",
   "private": true,
   "author": "CozyDesk",
   "license": "MIT",
@@ -16,7 +16,9 @@
     "test": "vitest run",
     "build": "npm run typecheck && npm run lint && npm run test && npm run build:electron && vite build",
     "dist": "npm run build && electron-builder --win",
-    "dist:dir": "npm run build && electron-builder --dir"
+    "dist:dir": "npm run build && electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win --x64 --publish never",
+    "dist:win:nosign": "npm run build && electron-builder --win --x64 --publish never --config.win.signAndEditExecutable=false"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

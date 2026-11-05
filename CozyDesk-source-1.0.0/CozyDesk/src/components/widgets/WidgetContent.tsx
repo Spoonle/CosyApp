@@ -18,7 +18,6 @@ import { db, uid, nowTs } from '@/services/storage/db';
 import type { Habit, PomodoroSession, Task } from '@/types/domain';
 import {
   formatClock,
-  fullDate,
   todayKey,
   dateKey,
   minutesToHM,
@@ -36,6 +35,7 @@ import { remainingMs } from '@/services/pomodoroEngine';
 import { quoteOfDay } from '@/data/quotes';
 import { RingProgress, MiniBars } from '@/components/charts/Charts';
 import { t } from '@/i18n';
+import { HeroClock } from '@/components/widgets/HeroClock';
 import type { WidgetType } from '@/stores/dashboard';
 
 export function WidgetContent({ type }: { type: WidgetType }): React.ReactNode {
@@ -72,27 +72,8 @@ export function WidgetContent({ type }: { type: WidgetType }): React.ReactNode {
 /* ---------- Horloge ---------- */
 
 function ClockWidget(): React.ReactNode {
-  const now = useNow(1000);
-  const d = new Date(now);
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <div
-        className="tabular"
-        style={{
-          fontSize: 'var(--text-4xl)',
-          fontWeight: 250,
-          letterSpacing: '-0.03em',
-          lineHeight: 1.05
-        }}
-      >
-        {String(d.getHours()).padStart(2, '0')}:
-        <span style={{ opacity: 0.55 }}>{String(d.getMinutes()).padStart(2, '0')}</span>
-      </div>
-      <div className="text-secondary" style={{ fontSize: 'var(--text-md)', marginTop: 4 }}>
-        {fullDate(d)}
-      </div>
-    </div>
-  );
+  // L'horloge est un composant à part entière : tailles et styles configurables.
+  return <HeroClock />;
 }
 
 /* ---------- Date & semaine ---------- */

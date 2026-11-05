@@ -1,4 +1,4 @@
-/** Réglages globaux — persistés dans localStorage. */
+/** Réglages globaux — persistés dans localStorage (migration douce v1 → v2). */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -14,6 +14,69 @@ export type ThemeId =
 
 export type ColorMode = 'auto' | 'light' | 'dark';
 export type GraphicsProfile = 'high' | 'balanced' | 'performance';
+
+/* ---------- Espace de travail (2.0) ---------- */
+
+export type ClockSize = 'md' | 'lg' | 'xl';
+export type ClockStyle = 'stacked' | 'inline' | 'minimal';
+export type WidgetAppearance = 'transparent' | 'subtle' | 'glass';
+export type DockPosition = 'bottom' | 'left' | 'right';
+export type DashboardDensity = 'tight' | 'comfortable' | 'airy';
+export type MotionIntensity = 'full' | 'reduced' | 'none';
+
+export interface ClockSettings {
+  size: ClockSize;
+  style: ClockStyle;
+  /** Affiche les secondes. */
+  seconds: boolean;
+  /** Affiche la date complète. */
+  date: boolean;
+  /** Affiche un salut discret. */
+  greeting: boolean;
+  /** Prénom utilisé par le salut (facultatif). */
+  name: string;
+}
+
+export interface WorkspaceSettings {
+  clock: ClockSettings;
+  widgets: {
+    /** Apparence appliquée aux widgets qui n'ont pas d'override. */
+    appearance: WidgetAppearance;
+    /** Multiplicateur d'espacement de la grille (0.4 – 2). */
+    spacing: number;
+  };
+  dashboard: {
+    density: DashboardDensity;
+  };
+  dock: {
+    visible: boolean;
+    position: DockPosition;
+    autoHide: boolean;
+    /** Identifiants de modules affichés dans le dock (l'ordre compte). */
+    shortcuts: string[];
+  };
+  motion: MotionIntensity;
+}
+
+export const DEFAULT_WORKSPACE: WorkspaceSettings = {
+  clock: { size: 'lg', style: 'stacked', seconds: false, date: true, greeting: true, name: '' },
+  widgets: { appearance: 'transparent', spacing: 1 },
+  dashboard: { density: 'comfortable' },
+  dock: {
+    visible: true,
+    position: 'bottom',
+    autoHide: false,
+    shortcuts: ['pomodoro', 'tasks', 'notes', 'calendar', 'music', 'stats']
+  },
+  motion: 'full'
+};
+
+/** Marge horizontale du dashboard selon la densité choisie. */
+export const DENSITY_MARGIN: Record<DashboardDensity, number> = {
+  tight: 16,
+  comfortable: 34,
+  airy: 68
+};
 
 export interface WallpaperSettings {
   kind: 'gradient' | 'image' | 'video';
@@ -48,10 +111,13 @@ export interface SettingsState {
   pomodoro: PomodoroSettings;
   ambientResume: boolean;
   weather: { city: string; lat: number; lon: number } | null;
+  workspace: WorkspaceSettings;
   setSettings: (patch: Partial<SettingsState>) => void;
+  setWorkspace: (patch: Partial<WorkspaceSettings> & { clock?: Partial<ClockSettings> }) => void;
   setWallpaper: (patch: Partial<WallpaperSettings>) => void;
   setPomodoro: (patch: Partial<PomodoroSettings>) => void;
   resetAppearance: () => void;
+  resetWorkspace: () => void;
 }
 
 const DEFAULT_APPEARANCE = {
@@ -63,6 +129,29 @@ const DEFAULT_APPEARANCE = {
   reducedMotion: false,
   graphicsProfile: 'high' as GraphicsProfile
 };
+
+/**
+ * Migration pure et testable des réglages.
+ * v1 → v2 : conserve l'intégralité des réglages existants et ajoute
+ * l'espace de travail avec ses valeurs par défaut.
+ */
+export function migrateSettings(
+  persisted: unknown,
+  version: number
+): Partial<SettingsState> {
+  const state = (persisted ?? {}) as Partial<SettingsState>;
+  if (version < 2) {
+    return {
+      ...state,
+      workspace: {
+        ...DEFAULT_WORKSPACE,
+        // On respecte la préférence « animations réduites » déjà choisie.
+        motion: state.reducedMotion ? 'reduced' : DEFAULT_WORKSPACE.motion
+      }
+    };
+  }
+  return state;
+}
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
@@ -86,15 +175,34 @@ export const useSettingsStore = create<SettingsState>()(
       },
       ambientResume: false,
       weather: null,
+      workspace: DEFAULT_WORKSPACE,
       setSettings: (patch) => set(patch),
-      setWallpaper: (patch) =>
-        set((s) => ({ wallpaper: { ...s.wallpaper, ...patch } })),
+      setWorkspace: (patch) =>
+        set((s) => ({
+          workspace: {
+            ...s.workspace,
+            ...patch,
+            clock: { ...s.workspace.clock, ...(patch.clock ?? {}) },
+            widgets: { ...s.workspace.widgets, ...(patch.widgets ?? {}) },
+            dashboard: { ...s.workspace.dashboard, ...(patch.dashboard ?? {}) },
+            dock: { ...s.workspace.dock, ...(patch.dock ?? {}) }
+          }
+        })),
+      setWallpaper: (patch) => set((s) => ({ wallpaper: { ...s.wallpaper, ...patch } })),
       setPomodoro: (patch) => set((s) => ({ pomodoro: { ...s.pomodoro, ...patch } })),
-      resetAppearance: () => set(DEFAULT_APPEARANCE)
+      resetAppearance: () => set(DEFAULT_APPEARANCE),
+      resetWorkspace: () => set({ workspace: DEFAULT_WORKSPACE })
     }),
     {
       name: 'cozydesk.settings.v1',
-      version: 1
+      version: 2,
+      /**
+       * Migration non destructive v1 → v2 :
+       * les réglages existants (thème, mode, accent, wallpaper, pomodoro…) sont
+       * conservés tels quels ; seules les nouvelles clés de l'espace de travail
+       * sont ajoutées avec leurs valeurs par défaut.
+       */
+      migrate: migrateSettings
     }
   )
 );
@@ -133,15 +241,51 @@ export function resolvedMode(mode: ColorMode): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
+/** Intensité d'animation effective (le réglage historique prime). */
+export function resolvedMotion(s: SettingsState): MotionIntensity {
+  return s.reducedMotion ? 'none' : s.workspace.motion;
+}
+
 export function applySettingsToDom(): void {
   const s = useSettingsStore.getState();
   const root = document.documentElement;
+  const ws = s.workspace;
+  const motion = resolvedMotion(s);
+
   root.dataset.theme = s.theme;
   root.dataset.mode = resolvedMode(s.mode);
   root.dataset.profile = s.graphicsProfile;
-  root.dataset.reducedMotion = String(s.reducedMotion);
+  root.dataset.reducedMotion = String(motion === 'none');
+  root.dataset.motion = motion;
+
+  /* --- Espace de travail --- */
+  root.dataset.dockPosition = ws.dock.position;
+  root.dataset.dockHidden = String(!ws.dock.visible);
+  root.dataset.dockAutoHide = String(ws.dock.autoHide);
+  root.dataset.density = ws.dashboard.density;
+  root.dataset.widgetAppearance = ws.widgets.appearance;
+
   root.style.setProperty('--user-blur-mult', String(s.blurIntensity));
   root.style.setProperty('--user-alpha-mult', String(s.transparency));
+  root.style.setProperty('--ws-gap', `${Math.round(14 * ws.widgets.spacing)}px`);
+  root.style.setProperty('--ws-margin', `${DENSITY_MARGIN[ws.dashboard.density]}px`);
+
+  // Géométrie réservée au dock (doit rester synchrone avec stores/windows.ts).
+  const reserve = !ws.dock.visible
+    ? 18
+    : ws.dock.position !== 'bottom'
+      ? 18
+      : ws.dock.autoHide
+        ? 36
+        : 88;
+  const side = !ws.dock.visible || ws.dock.position === 'bottom'
+    ? 0
+    : ws.dock.autoHide
+      ? 24
+      : 76;
+  root.style.setProperty('--dock-reserve', `${reserve}px`);
+  root.style.setProperty('--dock-side', `${side}px`);
+
   if (s.accent) {
     root.style.setProperty('--accent-h', String(s.accent.h));
     root.style.setProperty('--accent-s', `${s.accent.s}%`);
