@@ -1,4 +1,4 @@
-# CozyDesk Minimal 2.0 — refonte de l'espace de travail
+# CozyDesk 2.0 — refonte de l'espace de travail
 
 Version 2.0.0 · même application, même base de données, nouvelle hiérarchie visuelle.
 Aucune migration destructive : les dispositions, réglages et données de la 1.0 sont conservés.
@@ -141,8 +141,8 @@ Nouveaux tests :
 Les artefacts sont nommés explicitement, donc la version 1.0 n'est jamais écrasée :
 
 ```
-CozyDesk-Minimal-2.0-Portable.exe
-CozyDesk-Minimal-2.0-Setup.exe
+CozyDesk-2.0-Final-Portable.exe
+CozyDesk-2.0-Final-Setup.exe
 ```
 
 Sur Windows (recommandé, icône incrustée nativement) :
@@ -169,7 +169,7 @@ Exécutables produits (run `42077660134`, conclusion success) :
 
 | Fichier | Taille |
 |---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | ≈ 78 Mo |
-| `CozyDesk-Minimal-2.0-Setup.exe` | ≈ 78 Mo |
+| `CozyDesk-2.0-Final-Portable.exe` | ≈ 78 Mo |
+| `CozyDesk-2.0-Final-Setup.exe` | ≈ 78 Mo |
 
 Voir `docs/QA-2.0.md` pour le détail des vérifications et des limites.

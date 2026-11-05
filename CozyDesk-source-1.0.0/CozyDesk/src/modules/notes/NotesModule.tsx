@@ -138,14 +138,8 @@ function NoteEditor({ note }: { note: Note }): React.ReactNode {
   const [showHistory, setShowHistory] = useState(false);
   const lastRevisionAt = useRef<number>(note.updatedAt);
 
-  useEffect(() => {
-    setTitle(note.title);
-    setContent(note.content);
-    setSavedAt(null);
-    setShowHistory(false);
-    lastRevisionAt.current = note.updatedAt;
-  }, [note.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // L'éditeur est remonté via `key={selected.id}` : inutile de resynchroniser
+  // l'état local à chaque changement de note.
   // Autosauvegarde + révision si le contenu a réellement changé.
   useEffect(() => {
     if (title === note.title && content === note.content) return;

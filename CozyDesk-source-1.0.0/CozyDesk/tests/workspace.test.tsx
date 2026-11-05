@@ -43,9 +43,46 @@ describe('migration des réglages (v1 → v2)', () => {
     expect(migrated.workspace?.motion).toBe('reduced');
   });
 
-  it('ne touche à rien au-delà de la version 2', () => {
+  it('aligne l’ancien drapeau d’animations en v2 → v3', () => {
+    const reduced = migrateSettings(
+      {
+        reducedMotion: true,
+        workspace: { ...DEFAULT_WORKSPACE, motion: 'full' }
+      },
+      2
+    );
+    expect(reduced.workspace?.motion).toBe('reduced');
+
+    const alreadyNone = migrateSettings(
+      { reducedMotion: true, workspace: { ...DEFAULT_WORKSPACE, motion: 'none' } },
+      2
+    );
+    expect(alreadyNone.workspace?.motion).toBe('none');
+
+    const untouched = migrateSettings(
+      { reducedMotion: false, workspace: { ...DEFAULT_WORKSPACE, motion: 'reduced' } },
+      2
+    );
+    expect(untouched.workspace?.motion).toBe('reduced');
+  });
+
+  it('ne touche à rien au-delà de la version 3', () => {
     const state = { theme: 'amoled' as const };
-    expect(migrateSettings(state, 2)).toBe(state);
+    expect(migrateSettings(state, 3)).toBe(state);
+  });
+
+  it('motion est l’unique source de vérité pour les animations', () => {
+    useSettingsStore.getState().setSettings({ reducedMotion: false });
+    useSettingsStore.getState().setWorkspace({ motion: 'none' });
+    applySettingsToDom();
+    expect(document.documentElement.dataset.motion).toBe('none');
+    expect(document.documentElement.dataset.reducedMotion).toBe('true');
+
+    useSettingsStore.getState().setWorkspace({ motion: 'full' });
+    applySettingsToDom();
+    expect(document.documentElement.dataset.motion).toBe('full');
+    // Le drapeau hérité suit le réglage unique.
+    expect(useSettingsStore.getState().reducedMotion).toBe(false);
   });
 });
 

@@ -144,11 +144,14 @@ const DEFAULT_APPEARANCE = {
  * v1 → v2 : conserve l'intégralité des réglages existants et ajoute
  * l'espace de travail avec ses valeurs par défaut.
  */
+export const SETTINGS_SCHEMA_VERSION = 3;
+
 export function migrateSettings(
   persisted: unknown,
   version: number
 ): Partial<SettingsState> {
   const state = (persisted ?? {}) as Partial<SettingsState>;
+
   if (version < 2) {
     return {
       ...state,
@@ -159,6 +162,19 @@ export function migrateSettings(
       }
     };
   }
+
+  if (version < 3) {
+    // v3 : l'intensité d'animation devient l'unique réglage. On aligne
+    // l'ancien drapeau `reducedMotion` sur `motion` sans rien perdre.
+    const workspace = state.workspace ?? DEFAULT_WORKSPACE;
+    const motion: MotionIntensity = state.reducedMotion
+      ? workspace.motion === 'none'
+        ? 'none'
+        : 'reduced'
+      : workspace.motion;
+    return { ...state, workspace: { ...workspace, motion } };
+  }
+
   return state;
 }
 
@@ -187,16 +203,18 @@ export const useSettingsStore = create<SettingsState>()(
       workspace: DEFAULT_WORKSPACE,
       setSettings: (patch) => set(patch),
       setWorkspace: (patch) =>
-        set((s) => ({
-          workspace: {
+        set((s) => {
+          const workspace = {
             ...s.workspace,
             ...patch,
             clock: { ...s.workspace.clock, ...(patch.clock ?? {}) },
             widgets: { ...s.workspace.widgets, ...(patch.widgets ?? {}) },
             dashboard: { ...s.workspace.dashboard, ...(patch.dashboard ?? {}) },
             dock: { ...s.workspace.dock, ...(patch.dock ?? {}) }
-          }
-        })),
+          };
+          // `reducedMotion` reste un reflet pour les données héritées de la 1.0.
+          return { workspace, reducedMotion: workspace.motion !== 'full' };
+        }),
       setWallpaper: (patch) => set((s) => ({ wallpaper: { ...s.wallpaper, ...patch } })),
       setPomodoro: (patch) => set((s) => ({ pomodoro: { ...s.pomodoro, ...patch } })),
       resetAppearance: () => set(DEFAULT_APPEARANCE),
@@ -204,9 +222,9 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'cozydesk.settings.v1',
-      version: 2,
+      version: SETTINGS_SCHEMA_VERSION,
       /**
-       * Migration non destructive v1 → v2 :
+       * Migration non destructive v1 → v3 :
        * les réglages existants (thème, mode, accent, wallpaper, pomodoro…) sont
        * conservés tels quels ; seules les nouvelles clés de l'espace de travail
        * sont ajoutées avec leurs valeurs par défaut.
@@ -250,9 +268,13 @@ export function resolvedMode(mode: ColorMode): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
-/** Intensité d'animation effective (le réglage historique prime). */
+/**
+ * Intensité d'animation effective.
+ * `workspace.motion` est l'unique source de vérité ; `reducedMotion` n'est
+ * conservé que comme reflet de compatibilité (données de la 1.0).
+ */
 export function resolvedMotion(s: SettingsState): MotionIntensity {
-  return s.reducedMotion ? 'none' : s.workspace.motion;
+  return s.workspace.motion;
 }
 
 export function applySettingsToDom(): void {

@@ -1,4 +1,4 @@
-# Campagne QA — CozyDesk Minimal 2.0
+# Campagne QA — CozyDesk 2.0
 
 Date : 2026-11-05 · Cible : Windows x64
 
@@ -79,8 +79,8 @@ C'est le binaire du paquet, pas le serveur Vite.
 
 | Fichier | Taille |
 |---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | ≈ 78 Mo |
-| `CozyDesk-Minimal-2.0-Setup.exe` | ≈ 78 Mo |
+| `CozyDesk-2.0-Final-Portable.exe` | ≈ 78 Mo |
+| `CozyDesk-2.0-Final-Setup.exe` | ≈ 78 Mo |
 | `smoke-2.0.png` (preuve de rendu) | ≈ 868 Ko |
 
 Les tailles exactes varient de quelques octets d'un build à l'autre (horodatage embarqué
@@ -104,11 +104,11 @@ bloqué depuis cet environnement. La recette visuelle humaine reste donc à fair
   (`migrateSettings`, `migrateDashboard`) : aucune disposition, aucun réglage n'est perdu.
 - Aucune migration IndexedDB : le schéma des 12 modules est intact.
 - L'ancien exécutable n'est ni déplacé ni écrasé ; les nouveaux artefacts portent
-  `CozyDesk-Minimal-2.0-*`.
+  `CozyDesk-2.0-Final-*`.
 
 ## 5. Recette manuelle sur Windows
 
-1. Lancer `CozyDesk-Minimal-2.0-Portable.exe`.
+1. Lancer `CozyDesk-2.0-Final-Portable.exe`.
 2. Vérifier au premier lancement : trois widgets (horloge, pomodoro, tâches),
    horloge lisible et qui avance, dock discret en bas.
 3. Ouvrir chaque module depuis le dock puis depuis « Tous les modules » (les 12 doivent

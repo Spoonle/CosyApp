@@ -154,6 +154,90 @@ export function migrateDashboard(persisted: unknown, version: number): Partial<D
   return state;
 }
 
+/** Deux rectangles de grille se chevauchent-ils ? */
+function overlaps(
+  a: { x: number; y: number; w: number; h: number },
+  b: { x: number; y: number; w: number; h: number }
+): boolean {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+const VALID_APPEARANCES = new Set(['transparent', 'subtle', 'glass']);
+
+/**
+ * Répare une disposition issue du stockage (ou d'une sauvegarde) :
+ * types inconnus écartés, identifiants dupliqués régénérés, coordonnées et
+ * tailles ramenées dans la grille, chevauchements résolus. Sans cela, une
+ * disposition corrompue rendrait des widgets invisibles ou superposés.
+ */
+export function sanitizeWidgets(input: unknown): WidgetLayout[] {
+  if (!Array.isArray(input)) return cloneWidgets(DEFAULT_LAYOUT);
+
+  const result: WidgetLayout[] = [];
+  const usedIds = new Set<string>();
+
+  for (const raw of input) {
+    if (raw === null || typeof raw !== 'object') continue;
+    const candidate = raw as Partial<WidgetLayout>;
+    if (!candidate.type || !(candidate.type in WIDGET_SIZES)) continue;
+
+    const type = candidate.type;
+    const spec = WIDGET_SIZES[type];
+    const w = Math.min(GRID_COLS, Math.max(spec.minW, Math.round(Number(candidate.w ?? spec.w))));
+    const h = Math.max(spec.minH, Math.round(Number(candidate.h ?? spec.h)));
+    if (!Number.isFinite(w) || !Number.isFinite(h)) continue;
+
+    const x = Math.min(GRID_COLS - w, Math.max(0, Math.round(Number(candidate.x ?? 0))));
+    const y = Math.max(0, Math.round(Number(candidate.y ?? 0)));
+
+    let id = typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : `w-${type}`;
+    if (usedIds.has(id)) id = `${id}-${result.length}`;
+    usedIds.add(id);
+
+    const widget: WidgetLayout = {
+      id,
+      type,
+      x: Number.isFinite(x) ? x : 0,
+      y: Number.isFinite(y) ? y : 0,
+      w,
+      h,
+      hidden: candidate.hidden === true
+    };
+    if (candidate.appearance && VALID_APPEARANCES.has(candidate.appearance)) {
+      widget.appearance = candidate.appearance;
+    }
+    if (candidate.compact === true) widget.compact = true;
+
+    // Résolution des chevauchements : on descend jusqu'à une place libre.
+    if (!widget.hidden) {
+      let guard = 0;
+      while (
+        guard < 200 &&
+        result.some((other) => !other.hidden && overlaps(widget, other))
+      ) {
+        const blocking = result.filter((other) => !other.hidden && overlaps(widget, other));
+        widget.y = Math.max(...blocking.map((other) => other.y + other.h)) ;
+        guard += 1;
+      }
+    }
+
+    result.push(widget);
+  }
+
+  return result.length > 0 ? result : cloneWidgets(DEFAULT_LAYOUT);
+}
+
+/** Le déplacement/redimensionnement entre-t-il en collision avec un autre widget ? */
+function collidesWithOthers(
+  widgets: WidgetLayout[],
+  movingId: string,
+  rect: { x: number; y: number; w: number; h: number }
+): boolean {
+  return widgets.some(
+    (other) => other.id !== movingId && !other.hidden && overlaps(rect, other)
+  );
+}
+
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set, get) => ({
@@ -183,25 +267,37 @@ export const useDashboardStore = create<DashboardState>()(
       removeWidget: (widgetId) =>
         set((s) => ({ widgets: s.widgets.filter((wd) => wd.id !== widgetId) })),
       moveWidget: (widgetId, x, y) =>
-        set((s) => ({
-          widgets: s.widgets.map((wd) =>
-            wd.id === widgetId
-              ? { ...wd, x: Math.max(0, Math.min(GRID_COLS - wd.w, x)), y: Math.max(0, y) }
-              : wd
-          )
-        })),
+        set((s) => {
+          const target = s.widgets.find((wd) => wd.id === widgetId);
+          if (!target) return s;
+          const rect = {
+            x: Math.max(0, Math.min(GRID_COLS - target.w, x)),
+            y: Math.max(0, y),
+            w: target.w,
+            h: target.h
+          };
+          // Pas de superposition involontaire : la cible reste en place.
+          if (!target.hidden && collidesWithOthers(s.widgets, widgetId, rect)) return s;
+          return {
+            widgets: s.widgets.map((wd) => (wd.id === widgetId ? { ...wd, ...rect } : wd))
+          };
+        }),
       resizeWidget: (widgetId, w, h) =>
-        set((s) => ({
-          widgets: s.widgets.map((wd) =>
-            wd.id === widgetId
-              ? {
-                  ...wd,
-                  w: Math.max(WIDGET_SIZES[wd.type].minW, Math.min(GRID_COLS - wd.x, w)),
-                  h: Math.max(WIDGET_SIZES[wd.type].minH, h)
-                }
-              : wd
-          )
-        })),
+        set((s) => {
+          const target = s.widgets.find((wd) => wd.id === widgetId);
+          if (!target) return s;
+          const spec = WIDGET_SIZES[target.type];
+          const rect = {
+            x: target.x,
+            y: target.y,
+            w: Math.max(spec.minW, Math.min(GRID_COLS - target.x, Math.round(w))),
+            h: Math.max(spec.minH, Math.round(h))
+          };
+          if (!target.hidden && collidesWithOthers(s.widgets, widgetId, rect)) return s;
+          return {
+            widgets: s.widgets.map((wd) => (wd.id === widgetId ? { ...wd, ...rect } : wd))
+          };
+        }),
       toggleHidden: (widgetId) =>
         set((s) => ({
           widgets: s.widgets.map((wd) =>
@@ -243,6 +339,22 @@ export const useDashboardStore = create<DashboardState>()(
     {
       name: 'cozydesk.dashboard.v1',
       version: 2,
+      /** Le mode édition est un état d'interface : il ne doit jamais être persisté. */
+      partialize: (s) => ({ widgets: s.widgets, savedLayouts: s.savedLayouts }),
+      /** Assainit la disposition relue du disque (données anciennes ou corrompues). */
+      merge: (persisted, current) => {
+        const stored = (persisted ?? {}) as Partial<DashboardState>;
+        return {
+          ...current,
+          widgets: sanitizeWidgets(stored.widgets ?? current.widgets),
+          savedLayouts: Array.isArray(stored.savedLayouts)
+            ? stored.savedLayouts.map((layout) => ({
+                ...layout,
+                widgets: sanitizeWidgets(layout.widgets)
+              }))
+            : []
+        };
+      },
       /**
        * Migration non destructive v1 → v2 :
        * la disposition de l'utilisateur est reprise intégralement ; les nouvelles

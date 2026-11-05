@@ -16,10 +16,11 @@ const smoke =
   smokePath && fs.existsSync(smokePath) ? JSON.parse(fs.readFileSync(smokePath, 'utf8')) : null;
 
 const lines = [
-  'CozyDesk Minimal 2.0 — bureau premium minimaliste.',
+  'CozyDesk 2.0 — bureau premium minimaliste.',
   '',
-  '- `CozyDesk-Minimal-2.0-Portable.exe` : version portable, aucune installation.',
-  '- `CozyDesk-Minimal-2.0-Setup.exe` : installateur (choix du répertoire, raccourcis).',
+  '- `CozyDesk-2.0-Final-Portable.exe` : version portable, aucune installation.',
+  '- `CozyDesk-2.0-Final-Setup.exe` : installateur (choix du répertoire, raccourcis).',
+  '- `CozyDesk-2.0-Final-Source.zip` : code source exact utilisé pour cette compilation.',
   '',
   'Compilé depuis les sources de ce dépôt sur un runner Windows officiel, puis vérifié',
   'automatiquement : contenu de `app.asar`, lancement réel de l’exécutable empaqueté',

@@ -63,13 +63,6 @@
   color: #fff;
 }
 
-/* Anciennes classes conservées pour compatibilité (aucune n'est plus rendue). */
-.titlebar-brand,
-.titlebar-mode,
-.titlebar-center {
-  display: none;
-}
-
 /* ---------- Wallpaper ---------- */
 
 .wallpaper-layer {

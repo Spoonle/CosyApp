@@ -15,7 +15,6 @@ import { DockLauncher } from './DockLauncher';
 
 export function Dock(): React.ReactNode {
   const windows = useWindowStore((s) => s.windows);
-  const close = useWindowStore((s) => s.close);
   const restore = useWindowStore((s) => s.restore);
   const openPalette = usePaletteStore((s) => s.openPalette);
   const dock = useSettingsStore((s) => s.workspace.dock);
@@ -36,15 +35,21 @@ export function Dock(): React.ReactNode {
 
   if (!dock.visible) return null;
 
+  /**
+   * Comportement attendu d'un dock : ouvrir si fermé, restaurer si réduit,
+   * ramener au premier plan si déjà visible. Fermer reste le rôle du bouton
+   * « Fermer » de la fenêtre (aucune action destructrice depuis le dock).
+   */
   const activate = (id: string): void => {
     const size = MODULE_MAP[id].defaultSize;
-    const existing = useWindowStore.getState().windows.find((w) => w.id === id);
-    if (existing && !existing.closing) {
-      if (existing.minimized) restore(id);
-      else close(id);
-    } else {
-      useWindowStore.getState().open(id, size);
+    const store = useWindowStore.getState();
+    const existing = store.windows.find((w) => w.id === id && !w.closing);
+    if (!existing) {
+      store.open(id, size);
+      return;
     }
+    if (existing.minimized) restore(id);
+    else store.focus(id);
   };
 
   const hidden = dock.autoHide && !revealed;
@@ -103,10 +108,6 @@ export function Dock(): React.ReactNode {
               aria-label={m.title}
               aria-pressed={running}
               onClick={() => activate(m.id)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                if (running) close(m.id);
-              }}
             >
               <Icon size={18} strokeWidth={1.9} />
               <span className="dock-dot" aria-hidden="true" />

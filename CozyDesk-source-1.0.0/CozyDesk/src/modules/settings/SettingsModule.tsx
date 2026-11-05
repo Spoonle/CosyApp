@@ -93,7 +93,6 @@ function AppearanceSection(): React.ReactNode {
   const accent = useSettingsStore((s) => s.accent);
   const blur = useSettingsStore((s) => s.blurIntensity);
   const transparency = useSettingsStore((s) => s.transparency);
-  const reducedMotion = useSettingsStore((s) => s.reducedMotion);
   const setSettings = useSettingsStore((s) => s.setSettings);
   const resetAppearance = useSettingsStore((s) => s.resetAppearance);
 
@@ -193,14 +192,9 @@ function AppearanceSection(): React.ReactNode {
           <Slider value={transparency} min={0.6} max={1.4} step={0.05} onChange={(v) => setSettings({ transparency: v })} ariaLabel="Transparence" />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Toggle checked={reducedMotion} onChange={(v) => setSettings({ reducedMotion: v })} label="Réduire les animations" />
-          <div>
-            <div style={{ fontWeight: 600 }}>Réduire les animations</div>
-            <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
-              Respecte aussi la préférence système « animations réduites ».
-            </div>
-          </div>
+        <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
+          L’intensité des animations se règle dans <strong>Bureau → Ambiance</strong>
+          (un seul réglage pour toute l’application).
         </div>
 
         <div>

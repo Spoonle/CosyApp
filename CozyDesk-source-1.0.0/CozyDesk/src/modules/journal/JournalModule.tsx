@@ -122,12 +122,8 @@ function DayEditor({
   const [mood, setMood] = useState<Mood | undefined>(entry?.mood);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  useEffect(() => {
-    setContent(entry?.content ?? '');
-    setMood(entry?.mood);
-    setSavedAt(null);
-  }, [day]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // L'éditeur est remonté via `key={selectedDay}` : l'état local est déjà
+  // réinitialisé au changement de jour, aucun effet de synchronisation requis.
   // Autosauvegarde (crée l'entrée au premier caractère).
   useEffect(() => {
     if (content === (entry?.content ?? '') && mood === entry?.mood) return;

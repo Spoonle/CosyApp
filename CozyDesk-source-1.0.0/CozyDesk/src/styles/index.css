@@ -8,6 +8,8 @@
 @import './shell.css';
 @import './windows.css';
 @import './dock.css';
-@import './workspace.css';
 @import './widgets.css';
+/* workspace.css en dernier des couches de composition : il affine les
+   composants partagés (toasts, contrôles posés sur le fond d'écran). */
+@import './workspace.css';
 @import './modules.css';

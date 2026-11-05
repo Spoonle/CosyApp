@@ -1,4 +1,4 @@
-# CozyDesk Minimal 2.0
+# CozyDesk 2.0
 
 **Bureau premium minimaliste — horloge centrale, widgets transparents, dock discret. Focus, tâches, notes, musique, ambiance, habitudes. 100 % local, sans compte, sans serveur.**
 
@@ -10,7 +10,7 @@ avec auto-masquage, et une section de réglages « Bureau » complète.
 Détails et migrations : [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) · recette : [`docs/QA-2.0.md`](docs/QA-2.0.md).
 
 **Téléchargement des exécutables Windows :** [`releases/tag/v2.0.0`](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)
-(`CozyDesk-Minimal-2.0-Portable.exe`, `CozyDesk-Minimal-2.0-Setup.exe`).
+(`CozyDesk-2.0-Final-Portable.exe`, `CozyDesk-2.0-Final-Setup.exe`).
 
 Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 
@@ -20,7 +20,7 @@ Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 
 ### Utiliser l'application (portable)
 
-1. Lancez `CozyDesk-Minimal-2.0-Portable.exe` (ou `CozyDesk-Minimal-2.0-Setup.exe` pour une installation).
+1. Lancez `CozyDesk-2.0-Final-Portable.exe` (ou `CozyDesk-2.0-Final-Setup.exe` pour une installation).
 2. C'est tout — vos données restent dans `%APPDATA%/CozyDesk` (IndexedDB + sauvegardes JSON dans `backups/`) et la version 2.0 relit celles de la 1.0.
 
 ### Développer / reconstruire
@@ -39,8 +39,8 @@ npm run dist:win # build + installateur Windows (NSIS) + portable
 
 `npm run dist` sur une machine **Windows** produit :
 
-- `release/CozyDesk-Minimal-2.0-Setup.exe` — installateur assisté (choix du dossier, raccourcis bureau + menu démarrer) ;
-- `release/CozyDesk-Minimal-2.0-Portable.exe` — version portable mono-fichier.
+- `release/CozyDesk-2.0-Final-Setup.exe` — installateur assisté (choix du dossier, raccourcis bureau + menu démarrer) ;
+- `release/CozyDesk-2.0-Final-Portable.exe` — version portable mono-fichier.
 
 Sous Linux sans `wine`, utilisez `npm run dist:win:nosign`.
 La compilation Windows est aussi automatisée : `.github/workflows/build-windows.yml`

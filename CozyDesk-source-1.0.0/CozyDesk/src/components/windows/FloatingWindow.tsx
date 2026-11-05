@@ -4,7 +4,6 @@ import { Suspense, useEffect, useRef, type PointerEvent as ReactPointerEvent } f
 import { Maximize2, Minus, Minimize2, Square, X } from 'lucide-react';
 import { MODULE_MAP } from '@/modules/registry';
 import { useWindowStore, workspaceBounds, type SnapZone } from '@/stores/windows';
-import { EmptyState } from '@/components/glass';
 
 const SNAP_EDGE = 26;
 const TITLE_H = 36;
@@ -226,8 +225,4 @@ export function SnapPreview(): React.ReactNode {
       }}
     />
   );
-}
-
-export function WindowLoadError({ message }: { message: string }) {
-  return <EmptyState icon={<X size={30} />} title="Module indisponible" children={message} />;
 }

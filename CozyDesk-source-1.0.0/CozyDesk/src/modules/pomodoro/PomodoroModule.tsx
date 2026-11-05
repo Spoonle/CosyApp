@@ -49,8 +49,7 @@ export default function PomodoroModule(): React.ReactNode {
   // Changement de durées pendant une pause → recalage de la phase.
   useEffect(() => {
     if (!running) resetPhase();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.workMin, settings.shortMin, settings.longMin, settings.cyclesBeforeLong]);
+  }, [running, resetPhase, settings.workMin, settings.shortMin, settings.longMin, settings.cyclesBeforeLong]);
 
   const tasks = useLiveQuery(() => db.tasks.where('status').equals('active').toArray(), [], []);
 

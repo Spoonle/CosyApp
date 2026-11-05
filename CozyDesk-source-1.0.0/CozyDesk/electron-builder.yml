@@ -18,7 +18,7 @@ compression: normal
 
 win:
   icon: build/icon.ico
-  # CozyDesk Minimal 2.0 : artefacts distincts de la version 1.0
+  # CozyDesk 2.0 : artefacts distincts de la version 1.0
   # (l'ancien exécutable reste intact, rien n'est écrasé).
   # L'incrustation de l'icône dans le .exe s'effectue nativement sous Windows.
   # Pour compiler sous Linux sans wine : `npm run dist:win:nosign`.
@@ -36,8 +36,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: CozyDesk Minimal 2.0
-  artifactName: CozyDesk-Minimal-2.0-Setup.${ext}
+  shortcutName: CozyDesk 2.0
+  artifactName: CozyDesk-2.0-Final-Setup.${ext}
 
 portable:
-  artifactName: CozyDesk-Minimal-2.0-Portable.${ext}
+  artifactName: CozyDesk-2.0-Final-Portable.${ext}

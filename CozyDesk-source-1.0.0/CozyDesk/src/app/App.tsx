@@ -76,6 +76,23 @@ function useBoot(): BootState {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  // Redimensionner la fenêtre ne doit jamais laisser un module hors écran.
+  useEffect(() => {
+    let timer: number | undefined;
+    const onResize = (): void => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const sizes = Object.fromEntries(MODULES.map((m) => [m.id, m.defaultSize]));
+        useWindowStore.getState().reconcile(sizes);
+      }, 150);
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -108,7 +125,7 @@ function useBoot(): BootState {
             if (opt === 'mode=dark' || opt === 'mode=light') {
               useSettingsStore.getState().setSettings({ mode: opt.slice(5) as ColorMode });
             } else if (opt === 'rm=1') {
-              useSettingsStore.getState().setSettings({ reducedMotion: true });
+              useSettingsStore.getState().setWorkspace({ motion: 'none' });
             } else if (opt === 'flat=1') {
               // Capture d'écran sans backdrop-filter (contournement d'un bug
               // de capturePage en rendu logiciel — sans effet sur Windows/GPU).

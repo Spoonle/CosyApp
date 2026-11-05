@@ -26,8 +26,9 @@ export function HeroClock({
   compact?: boolean;
   className?: string;
 }): React.ReactNode {
-  const now = useNow(1000);
   const clock = useSettingsStore((s) => s.workspace.clock);
+  // Sans secondes affichées, inutile de réveiller le composant chaque seconde.
+  const now = useNow(clock.seconds ? 1000 : 5000);
   const d = new Date(now);
 
   const greeting = clock.greeting

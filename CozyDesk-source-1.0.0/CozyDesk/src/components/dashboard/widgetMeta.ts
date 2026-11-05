@@ -63,8 +63,3 @@ export const APPEARANCES: {
 ];
 
 export const APPEARANCE_ORDER: WidgetAppearance[] = ['transparent', 'subtle', 'glass'];
-
-export function nextAppearance(current: WidgetAppearance): WidgetAppearance {
-  const i = APPEARANCE_ORDER.indexOf(current);
-  return APPEARANCE_ORDER[(i + 1) % APPEARANCE_ORDER.length];
-}

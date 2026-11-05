@@ -1,8 +1,8 @@
-name: Build CozyDesk Minimal 2.0 (Windows)
+name: Build CozyDesk 2.0 (Windows)
 
 # Produit ET VÉRIFIE les deux artefacts Windows à partir du code source réel :
-#   CozyDesk-Minimal-2.0-Portable.exe
-#   CozyDesk-Minimal-2.0-Setup.exe
+#   CozyDesk-2.0-Final-Portable.exe
+#   CozyDesk-2.0-Final-Setup.exe
 #
 # Vérifications exécutées avant publication :
 #   1. contenu réel de app.asar (scripts/verify-package.cjs) ;
@@ -146,16 +146,40 @@ jobs:
           Write-Output "::notice title=Persistance::userData créé : $dir"
           Get-ChildItem $dir -Recurse -Depth 2 | Select-Object -First 15 FullName
 
+      # ---------- Archive source (exact code used for this build) ----------
+      - name: Package source archive
+        if: always()
+        shell: pwsh
+        run: |
+          $zip = Join-Path $PWD "release\CozyDesk-2.0-Final-Source.zip"
+          if (Test-Path $zip) { Remove-Item $zip }
+          $include = @(
+            "src", "electron", "tests", "scripts", "build", "docs",
+            "package.json", "package-lock.json", "tsconfig.json",
+            "tsconfig.electron.json", "tsconfig.node.json", "vite.config.ts",
+            "vitest.config.ts", "electron-builder.yml", "eslint.config.js",
+            "index.html", "README.md", "preview.config.mjs"
+          ) | Where-Object { Test-Path $_ }
+          Compress-Archive -Path $include -DestinationPath $zip -CompressionLevel Optimal
+          $size = (Get-Item $zip).Length
+          "archive source : $zip ($size octets)"
+          if ($size -lt 100000) {
+            Write-Output "::error title=Archive source::archive trop petite ($size octets)"
+            throw "archive source incomplète"
+          }
+          Write-Output "::notice title=Archive source::CozyDesk-2.0-Final-Source.zip ($size octets)"
+
       # ---------- Diagnostics et publication ----------
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CozyDesk-Minimal-2.0-Windows
+          name: CozyDesk-2.0-Final-Windows
           if-no-files-found: warn
           path: |
-            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
-            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-2.0-Final-Portable.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-2.0-Final-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-2.0-Final-Source.zip
             CozyDesk-source-1.0.0/CozyDesk/release/smoke-2.0.png
             CozyDesk-source-1.0.0/CozyDesk/release/smoke.json
             CozyDesk-source-1.0.0/CozyDesk/release/verification.json
@@ -168,11 +192,12 @@ jobs:
         if: always() && startsWith(github.ref, 'refs/tags/v2')
         uses: softprops/action-gh-release@v2
         with:
-          name: CozyDesk Minimal 2.0
+          name: CozyDesk 2.0 — édition finale
           body_path: CozyDesk-source-1.0.0/CozyDesk/release/release-notes.md
           files: |
-            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
-            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-2.0-Final-Portable.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-2.0-Final-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-2.0-Final-Source.zip
             CozyDesk-source-1.0.0/CozyDesk/release/smoke-2.0.png
 
       # ---------- Verdict : le job échoue si le binaire n'a pas été vérifié ----------
@@ -191,3 +216,15 @@ jobs:
             exit 1
           }
           Write-Output "::notice title=Verdict::exécutable empaqueté vérifié (lancement + rendu)"
+          $expected = @(
+            "release\CozyDesk-2.0-Final-Portable.exe",
+            "release\CozyDesk-2.0-Final-Setup.exe",
+            "release\CozyDesk-2.0-Final-Source.zip"
+          )
+          foreach ($f in $expected) {
+            if (-not (Test-Path $f)) {
+              Write-Output "::error title=Verdict::livrable manquant ($f)"
+              exit 1
+            }
+            Write-Output "::notice title=Livrable::$f ($((Get-Item $f).Length) octets)"
+          }

@@ -53,8 +53,3 @@ export function TitleBar(): React.ReactNode {
     </header>
   );
 }
-
-/** Conservé pour compatibilité avec les anciens écrans de chargement. */
-export function TitleBarFallback(): React.ReactNode {
-  return <div className="titlebar" aria-hidden="true" />;
-}

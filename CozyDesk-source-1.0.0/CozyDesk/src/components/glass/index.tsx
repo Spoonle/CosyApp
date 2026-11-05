@@ -10,25 +10,6 @@ import {
 } from 'react';
 import { X } from 'lucide-react';
 
-/* ---------- Panneaux ---------- */
-
-export function GlassPanel({
-  variant = 'glass',
-  className,
-  children,
-  ...rest
-}: {
-  variant?: 'glass' | 'glass-ultra' | 'glass-deep' | 'glass-float' | 'surface-solid';
-  className?: string;
-  children?: ReactNode;
-} & React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={clsx(variant, className)} {...rest}>
-      {children}
-    </div>
-  );
-}
-
 /* ---------- Boutons ---------- */
 
 type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger';
@@ -296,10 +277,6 @@ export function EmptyState({
 }
 
 /* ---------- Divers ---------- */
-
-export function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className="kbd">{children}</kbd>;
-}
 
 export function ProgressBar({ value, label }: { value: number; label?: string }) {
   const clamped = Math.min(100, Math.max(0, Math.round(value * 100)));
