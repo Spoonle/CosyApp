@@ -18,6 +18,22 @@ Publication GitHub (binaires produits sur un runner Windows officiel, à partir 
 L'ancien exécutable 1.0 n'est ni renommé, ni déplacé, ni écrasé : ces deux fichiers portent
 un nom distinct et sont les seuls produits par cette refonte.
 
+## 1 bis. Essayer sans rien installer (aperçu navigateur)
+
+```bash
+cd CozyDesk-source-1.0.0/CozyDesk
+npm ci
+npm run build:electron && npx vite build     # produit dist/
+npx vite preview --config preview.config.mjs # http://localhost:4173
+```
+
+`preview.config.mjs` sert le build réel de production dans un onglet, sans toucher à la
+configuration de l'application. Ce mode est pratique pour juger le rendu, mais **ce n'est pas
+l'application** : les contrôles de fenêtre (réduire/agrandir/fermer), les sélecteurs de
+fichiers locaux (musique, fonds d'écran image/vidéo) et les médias locaux sont inactifs,
+puisqu'ils passent par le processus principal Electron. Les données y sont stockées dans
+l'IndexedDB du navigateur, séparément de celles de l'application de bureau.
+
 ## 2. Ce qui a changé, en une page
 
 **Le bureau, pas un tableau de bord.** Trois widgets au premier lancement — horloge,
