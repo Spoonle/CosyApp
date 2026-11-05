@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation développeur
-    url: https://github.com/Spoonle/CosyApp/blob/main/docs/ARCHITECTURE.md
+    url: https://github.com/Spoonle/CozyDesk/blob/main/docs/ARCHITECTURE.md
     about: Architecture, IPC, persistance, widgets, build.

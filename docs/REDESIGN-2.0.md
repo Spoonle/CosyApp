@@ -165,7 +165,7 @@ typecheck, lint, tests, build, `electron-builder --win --x64`, puis vérifie le 
 (contenu de `app.asar`, lancement réel du binaire, capture d'écran) avant publication.
 
 Exécutables produits (run `42077660134`, conclusion success) :
-`https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0`
+`https://github.com/Spoonle/CozyDesk/releases/tag/v2.0.0`
 
 | Fichier | Taille |
 |---|---|

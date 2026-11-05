@@ -86,7 +86,7 @@ C'est le binaire du paquet, pas le serveur Vite.
 Les tailles exactes varient de quelques octets d'un build à l'autre (horodatage embarqué
 par electron-builder) : elles sont donc indiquées en ordre de grandeur.
 
-Publication : `https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0` — l'exécutable 1.0
+Publication : `https://github.com/Spoonle/CozyDesk/releases/tag/v2.0.0` — l'exécutable 1.0
 d'origine n'est ni déplacé ni écrasé.
 
 ### Limite restante, explicitement assumée

@@ -10,7 +10,7 @@
 Publication GitHub (binaires produits sur un runner Windows officiel, à partir
 du code de ce dépôt) :
 
-**https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0**
+**https://github.com/Spoonle/CozyDesk/releases/tag/v2.0.0**
 
 | Fichier | Taille (indicative) | Rôle |
 |---|---|---|

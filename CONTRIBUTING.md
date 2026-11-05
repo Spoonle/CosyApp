@@ -6,7 +6,7 @@ l'environnement, coder, tester et proposer une modification.
 ## 1. Environnement de développement
 
 ```bash
-git clone https://github.com/Spoonle/CosyApp.git
+git clone https://github.com/Spoonle/CozyDesk.git
 cd CosyApp
 npm ci
 npm run dev

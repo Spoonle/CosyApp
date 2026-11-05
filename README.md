@@ -4,11 +4,11 @@ Bureau premium minimaliste pour Windows : horloge centrale, widgets transparents
 dock discret. Focus, tâches, notes, musique, ambiance, habitudes — **100 % local,
 sans compte, sans serveur**.
 
-![CozyDesk 2.0 — bureau principal](https://github.com/Spoonle/CosyApp/releases/download/v2.0.0/smoke-2.0.png)
+![CozyDesk 2.0 — bureau principal](https://github.com/Spoonle/CozyDesk/releases/download/v2.0.0/smoke-2.0.png)
 
 ## Télécharger
 
-Dernière version publiée : **[releases/tag/v2.0.0](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)**
+Dernière version publiée : **[releases/tag/v2.0.0](https://github.com/Spoonle/CozyDesk/releases/tag/v2.0.0)**
 
 | Fichier | Rôle |
 |---|---|
@@ -60,7 +60,7 @@ Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 ## Installation et développement
 
 ```bash
-git clone https://github.com/Spoonle/CosyApp.git
+git clone https://github.com/Spoonle/CozyDesk.git
 cd CosyApp
 npm ci                 # installation reproductible
 npm run dev            # Vite + Electron, rechargement à chaud
