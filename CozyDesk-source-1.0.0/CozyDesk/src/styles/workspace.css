@@ -1001,3 +1001,29 @@
   flex-wrap: wrap;
   max-width: 100%;
 }
+
+/* ---------- Ajustements de contenu par widget ---------- */
+
+/* Le pomodoro passe à la ligne plutôt que de déborder sur un widget étroit. */
+.widget[data-type='pomodoro'] .widget-body > div {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+/* Pendant l'édition, la géométrie suit le pointeur sans interpolation. */
+.widget[data-edit] {
+  transition:
+    background 200ms var(--ease-out-soft),
+    box-shadow 200ms var(--ease-out-soft);
+}
+
+/* Les toasts suivent la place réellement laissée par le dock. */
+.toaster {
+  bottom: calc(var(--dock-reserve) + 14px);
+}
+:root[data-dock-position='left'] .toaster {
+  right: calc(var(--dock-side) + 18px);
+}
+:root[data-dock-position='right'] .toaster {
+  right: calc(var(--dock-side) + 18px);
+}
