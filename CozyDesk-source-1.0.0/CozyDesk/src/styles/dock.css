@@ -1,0 +1,117 @@
+/* ============================================================
+   CozyDesk — Dock flottant
+   ============================================================ */
+
+.dock {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-dock);
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 9px 13px;
+  border-radius: var(--radius-2xl);
+  max-width: calc(100vw - 40px);
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+}
+.dock::-webkit-scrollbar {
+  display: none;
+}
+
+.dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  color: rgb(var(--text-secondary-rgb));
+  flex-shrink: 0;
+  transition:
+    transform 200ms var(--ease-spring),
+    background var(--dur-fast) var(--ease-out-soft),
+    color var(--dur-fast) var(--ease-out-soft);
+}
+
+.dock-item:hover {
+  color: rgb(var(--text-rgb));
+  background: rgb(255 255 255 / 0.14);
+  transform: translateY(-12px) scale(1.22);
+}
+
+/* Magnification des voisins */
+.dock-item:has(+ .dock-item:hover),
+.dock-item:hover + .dock-item {
+  transform: translateY(-5px) scale(1.08);
+}
+
+.dock-item:active {
+  transform: translateY(-2px) scale(1);
+}
+
+.dock-item.running {
+  color: rgb(var(--text-rgb));
+  background: rgb(255 255 255 / 0.08);
+}
+
+.dock-dot {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+  box-shadow: 0 0 8px hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.8);
+  transition: transform 180ms var(--ease-spring);
+}
+
+.dock-item.running .dock-dot {
+  transform: translateX(-50%) scale(1);
+}
+
+.dock-close {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgb(var(--glass-deep-rgb) / 0.95);
+  border: 1px solid rgb(var(--stroke-rgb) / 0.25);
+  color: rgb(var(--text-secondary-rgb));
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out-soft);
+  z-index: 2;
+}
+
+.dock-item:hover .dock-close {
+  opacity: 1;
+}
+
+.dock-close:hover {
+  background: #e5484d;
+  color: #fff;
+}
+
+.dock-separator {
+  width: 1px;
+  height: 34px;
+  align-self: center;
+  margin: 0 3px;
+  background: rgb(var(--stroke-rgb) / calc(var(--stroke-alpha) * 0.9));
+  flex-shrink: 0;
+}
+
+.dock-palette {
+  color: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 8%));
+}

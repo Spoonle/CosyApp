@@ -1,0 +1,156 @@
+/* ============================================================
+   CozyDesk — Base, typographie, scrollbars, focus
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: rgb(var(--text-rgb));
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+  font-feature-settings: 'ss01' on;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: rgb(var(--text-rgb));
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.35);
+}
+
+/* Texte sélectionnable (notes, journal, tâches) */
+.selectable,
+.selectable * {
+  user-select: text;
+}
+
+/* --- Scrollbars discrètes --- */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--text-muted-rgb) / 0.28);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--text-muted-rgb) / 0.5);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+
+/* --- Focus visible accessible --- */
+:focus-visible {
+  outline: 2px solid hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.8);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none; /* ring géré par .input:focus */
+}
+
+/* --- Utilitaires couleur texte --- */
+.text-secondary {
+  color: rgb(var(--text-secondary-rgb));
+}
+.text-muted {
+  color: rgb(var(--text-muted-rgb));
+}
+.text-accent {
+  color: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 12%));
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Fond ambiant de l'application (sous le wallpaper) --- */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-wallpaper);
+  background:
+    radial-gradient(1200px 800px at 12% -10%, var(--bg-grad-1), transparent 60%),
+    radial-gradient(1000px 700px at 110% 15%, var(--bg-grad-3), transparent 55%),
+    radial-gradient(900px 900px at 50% 120%, var(--bg-grad-2), transparent 60%),
+    var(--bg-base);
+  overflow: hidden;
+}
+
+.ambient-blob {
+  position: absolute;
+  width: 42vmax;
+  height: 42vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+.ambient-blob.b1 {
+  background: var(--aurora-1);
+  top: -12%;
+  left: -6%;
+  animation: aurora-drift-1 46s var(--ease-in-out-soft) infinite alternate;
+}
+.ambient-blob.b2 {
+  background: var(--aurora-2);
+  bottom: -18%;
+  right: -8%;
+  animation: aurora-drift-2 58s var(--ease-in-out-soft) infinite alternate;
+}
+.ambient-blob.b3 {
+  background: var(--aurora-3);
+  top: 30%;
+  left: 55%;
+  animation: aurora-drift-3 64s var(--ease-in-out-soft) infinite alternate;
+}
