@@ -7,10 +7,13 @@ CozyDesk est une application Windows construite avec **Electron + React + TypeSc
 La version **2.0** repense la hiérarchie visuelle : trois widgets par défaut au lieu de neuf,
 horloge principale configurable, widgets transparents, barre de titre fine, dock minimal
 avec auto-masquage, et une section de réglages « Bureau » complète.
-Détails et migrations : [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) · recette : [`docs/QA-2.0.md`](docs/QA-2.0.md).
+Détails et migrations : [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) ·
+recette QA : [`docs/QA-2.0.md`](docs/QA-2.0.md) ·
+**rapport de la QA finale** : [`docs/QA-FINAL-2.0.md`](docs/QA-FINAL-2.0.md).
 
 **Téléchargement des exécutables Windows :** [`releases/tag/v2.0.0`](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)
-(`CozyDesk-2.0-Final-Portable.exe`, `CozyDesk-2.0-Final-Setup.exe`).
+(`CozyDesk-2.0-Final-Portable.exe`, `CozyDesk-2.0-Final-Setup.exe`,
+`CozyDesk-2.0-Final-Source.zip`).
 
 Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 

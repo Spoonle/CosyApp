@@ -1,117 +1,119 @@
-# CozyDesk Minimal 2.0 — livraison
+# CozyDesk 2.0 — édition finale (livraison)
 
-> Refonte réelle du code source de CozyDesk 1.0.0, testée, compilée et empaquetée
-> en deux exécutables Windows vérifiés.
+> Phase « GODMODE FINAL QA » : audit complet du code source 2.0, correction des
+> défauts confirmés, validation des 12 modules et du système de widgets aux
+> quatre résolutions cibles, puis compilation et vérification des exécutables
+> Windows définitifs.
 
-## 1. Télécharger les exécutables
+## 1. Télécharger les livrables
 
-Publication GitHub (binaires produits sur un runner Windows officiel, à partir de ce dépôt) :
+Publication GitHub (binaires produits sur un runner Windows officiel, à partir
+du code de ce dépôt) :
 
 **https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0**
 
-| Fichier | Taille | Rôle |
+| Fichier | Taille exacte | Rôle |
 |---|---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | ≈ 78 Mo | portable, aucune installation |
-| `CozyDesk-Minimal-2.0-Setup.exe` | ≈ 78 Mo | installateur (dossier, raccourcis) |
-| `smoke-2.0.png` | ≈ 868 Ko | capture du binaire empaqueté en cours d'exécution |
+| `CozyDesk-2.0-Final-Portable.exe` | 81 681 579 octets | portable, aucune installation |
+| `CozyDesk-2.0-Final-Setup.exe` | 81 895 868 octets | installateur (dossier au choix, raccourcis bureau + menu Démarrer) |
+| `CozyDesk-2.0-Final-Source.zip` | 331 240 octets | code source exact utilisé pour cette compilation |
+| `smoke-2.0.png` | 868 042 octets | capture du binaire empaqueté en cours d'exécution (1024×720) |
 
-L'ancien exécutable 1.0 n'est ni renommé, ni déplacé, ni écrasé : ces deux fichiers portent
-un nom distinct et sont les seuls produits par cette refonte.
+L'ancien exécutable 1.0 n'est ni renommé, ni déplacé, ni écrasé.
 
 ## 1 bis. Essayer sans rien installer (aperçu navigateur)
 
 ```bash
 cd CozyDesk-source-1.0.0/CozyDesk
 npm ci
-npm run build:electron && npx vite build     # produit dist/
-npx vite preview --config preview.config.mjs # http://localhost:4173
+npm run build:electron && npx vite build      # produit dist/
+npx vite preview --config preview.config.mjs  # http://localhost:4173
 ```
 
-`preview.config.mjs` sert le build réel de production dans un onglet, sans toucher à la
-configuration de l'application. Ce mode est pratique pour juger le rendu, mais **ce n'est pas
-l'application** : les contrôles de fenêtre (réduire/agrandir/fermer), les sélecteurs de
-fichiers locaux (musique, fonds d'écran image/vidéo) et les médias locaux sont inactifs,
-puisqu'ils passent par le processus principal Electron. Les données y sont stockées dans
-l'IndexedDB du navigateur, séparément de celles de l'application de bureau.
-
-## 2. Ce qui a changé, en une page
-
-**Le bureau, pas un tableau de bord.** Trois widgets au premier lancement — horloge,
-pomodoro, tâches — au lieu de neuf, et **transparents par défaut** : le fond d'écran reste
-visible, le texte se pose dessus.
-
-**L'horloge devient le centre.** Composant dédié (`HeroClock.tsx`) : trois tailles
-(moyenne / grande / très grande), trois styles (empilé / en ligne / épuré), secondes, date
-complète, salut optionnel avec prénom. Elle se met à l'échelle du widget via les unités de
-conteneur, jamais l'inverse.
-
-**L'interface se retire.** Barre de titre de 46 → **34 px**, sans logo ni libellé. Dock de
-46 → **36 px** : infobulles, indicateur d'activité, **auto-masquage**, ancrage bas/gauche/
-droite, raccourcis personnalisables, et un **lanceur** qui garde les 12 modules accessibles.
-
-**Personnaliser sans encombrer.** Hors édition, un seul contrôle : un `+` discret à 42 %
-d'opacité. En édition, les outils n'apparaissent qu'au survol du widget (apparence, compact,
-masquer, retirer, redimensionner). Bibliothèque de widgets, presets de disposition
-(Minimal / Concentration / Classique) et **dispositions nommées** sauvegardables.
-
-**Réglages « Bureau »** dans le module Paramètres : horloge, apparence et espacement des
-widgets, marges, dock, voile du fond d'écran, intensité des animations, disposition par défaut.
-
-**Performance respectée.** Les widgets transparents n'appliquent **aucun** `backdrop-filter` ;
-seuls les modes subtil/verre en posent un, et les profils Équilibrée/Performance les
-désactivent. Pas de flou sur tous les éléments à la fois.
-
-## 3. Vos données sont conservées
-
-- `productName` (`CozyDesk`) et `appId` (`app.cozydesk.desktop`) inchangés → même répertoire
-  `%APPDATA%\CozyDesk`, donc la 2.0 relit la base IndexedDB de la 1.0.
-- Deux schémas `localStorage` passent en v2 avec des migrations **pures, testées et non
-  destructives** (`migrateSettings`, `migrateDashboard`) : thème, mode, accent, wallpaper,
-  pomodoro et **disposition existante** sont repris tels quels.
-- Aucune migration IndexedDB : le schéma des 12 modules est intact.
-
-## 4. Preuves de vérification
-
-| Contrôle | Résultat |
-|---|---|
-| `npm run typecheck` | 0 erreur |
-| `npm run lint` | 0 erreur, 0 avertissement |
-| `npm run test` | **87 tests, 11 fichiers, tous verts** |
-| `npm run build` | Vite + esbuild OK, 12 modules en chunks séparés |
-| Contenu de `app.asar` du paquet Windows | **9/9** contrôles (horloge, apparences, bibliothèque, lanceur, réglages, version 2.0.0) |
-| Lancement de `win-unpacked\CozyDesk.exe` | code de sortie 0, capture ≈ 868 Ko, 1024 × 720 |
-| Répertoire de données | `%APPDATA%\CozyDesk` créé au lancement |
-
-Un test dédié prouve que le vérificateur **rejette** un ancien paquet 1.0 simplement renommé :
-la livraison ne peut pas être un exécutable recyclé.
-
-## 5. Limites honnêtes de cet environnement
-
-1. **Pas de runtime Electron ici.** Les binaires Electron sont servis par
-   `objects.githubusercontent.com`, bloqué au niveau TCP dans ce conteneur ; `electron .` ne
-   peut donc pas y être lancé. C'est pourquoi la compilation Windows passe par GitHub Actions.
-2. **Pas de navigateur ni de pile graphique** : aucune capture locale possible. Le rendu a été
-   vérifié par tests DOM (jsdom) et par la capture du binaire empaqueté produite en CI.
-3. **Je n'ai pas pu regarder cette capture** (assets de release également bloqués) : le rendu
-   est prouvé par sa taille et ses dimensions, pas inspecté visuellement. Ouvrez
-   `smoke-2.0.png` ou l'application pour la recette visuelle finale.
-4. **`wine` non installable** : la compilation Windows locale est impossible ; `npm run dist:win`
-   fonctionne sur une machine Windows, `npm run dist:win:nosign` sous Linux sans wine.
-
-## 6. Pour reconstruire
+Ou en développement complet (fenêtre Electron réelle) :
 
 ```bash
 npm ci
-npm run dev          # développement (Vite + Electron)
-npm run typecheck && npm run lint && npm run test
-npm run dist:win     # Windows : portable + installateur
+npm run dev
 ```
 
-Le workflow `.github/workflows/build-windows.yml` refait tout (tests → build → paquet →
-vérification de `app.asar` → lancement du binaire → publication) sur `workflow_dispatch` ou
-sur un tag `v2*`.
+Le mode navigateur sert le build de production réel, mais **ce n'est pas
+l'application** : les contrôles de fenêtre Electron, les sélecteurs de fichiers
+locaux et les médias locaux y sont inactifs, et les données vivent dans
+l'IndexedDB du navigateur.
 
-## 7. Documentation
+## 2. Ce qui a été corrigé dans cette phase finale
 
-- `docs/REDESIGN-2.0.md` — architecture, modèle d'apparence, migrations, géométrie.
-- `docs/QA-2.0.md` — campagne de tests, vérifications du paquet, limites, recette manuelle.
+Aucune refonte : uniquement des défauts confirmés, corrigés dans le code.
+
+1. **Réglage d'animations dédoublonné.** Deux interrupteurs persistaient le même
+   choix et pouvaient diverger. `workspace.motion` est désormais l'unique source
+   de vérité (schéma **v3**, migration automatique v2 → v3 sans perte).
+2. **Dispositions de widgets fiabilisées.** Toute disposition persistée passe par
+   `sanitizeWidgets()` : type inconnu, identifiant dupliqué, coordonnées hors
+   grille, apparence invalide ou chevauchement sont réparés ; en dernier recours,
+   retour à la disposition par défaut. Le mode édition n'est plus persisté.
+3. **Plus de chevauchement possible à la souris.** Déplacement et
+   redimensionnement refusent une collision et conservent la dernière position
+   valide.
+4. **Dock prévisible.** Cliquer sur un module ouvert l'amène au premier plan
+   (avant : il se fermait) ; un module réduit est restauré. La fermeture reste le
+   bouton « Fermer » de la fenêtre — aucune action destructrice invisible.
+5. **Fenêtres toujours accessibles.** Au redimensionnement de l'écran, une
+   réconciliation débouncée (150 ms) ramène les fenêtres dans l'espace visible.
+6. **Horloge plus économe.** Le rendu passe à 5 s quand les secondes sont
+   masquées (au lieu de 1 s).
+7. **Cascade CSS explicite.** Ordre d'import corrigé, styles de l'espace de
+   travail en dernière couche.
+8. **Zéro contournement.** Les trois `eslint-disable` restants ont été supprimés
+   en corrigeant les causes (effets redondants, liste de dépendances incomplète).
+   Aucun `@ts-ignore`, `@ts-expect-error` ni `catch` vide dans le dépôt.
+9. **Code mort supprimé.** Cinq exports jamais utilisés et trois sélecteurs CSS
+   orphelins retirés ; aucun impact fonctionnel.
+
+## 3. Validation exécutée
+
+| Commande | Résultat |
+|---|---|
+| `npm run typecheck` | 0 erreur (renderer + processus principal) |
+| `npm run lint` | 0 erreur, 0 avertissement |
+| `npm run test` | **143 tests / 15 fichiers**, 0 échec, 0 avertissement React |
+| `npm run build` | bundle de production produit |
+
+Tests ajoutés dans cette phase :
+
+- `tests/modules.test.tsx` — les 12 modules et les 12 widgets montent et
+  démontent sans erreur console ;
+- `tests/integrity.test.ts` — migrations, assainissement des dispositions,
+  persistance, export/import ;
+- `tests/layout.test.ts` — 1280×720, 1366×768, 1600×900, 1920×1080 : fenêtres
+  dans l'écran quel que soit le dock, cellules de grille utilisables, aucune
+  disposition qui déborde ;
+- `tests/dock.test.tsx` — ouvrir, ramener au premier plan, restaurer, lanceur
+  complet, disparition quand le dock est masqué.
+
+## 4. Vérification du binaire empaqueté (CI Windows)
+
+| Contrôle | Résultat |
+|---|---|
+| Contenu de `app.asar` (`scripts/verify-package.cjs`) | 42 entrées — **9/9** contrôles |
+| Lancement de l'exécutable empaqueté | `exit=0` |
+| Rendu de l'interface | capture 868 042 octets, 1024×720 |
+| Création du répertoire de données | `%APPDATA%\CozyDesk` |
+| Présence des trois livrables | vérifiée par une barrière de fin de job |
+
+## 5. Limites déclarées
+
+- Aucun binaire Windows n'a été exécuté **sur cette machine** (environnement
+  Linux sans runtime Windows ni `wine`) : la compilation et les preuves
+  d'exécution proviennent du runner Windows de la CI, publiées en annotations et
+  dans la release.
+- Les gestes purement graphiques (glisser-déposer au pixel, fluidité perçue) ne
+  sont pas mesurables sans affichage ; leur logique est couverte par les tests de
+  stores.
+- Aucune mesure de FPS sur du matériel Intel intégré réel n'a pu être faite ici ;
+  les optimisations sont structurelles (horloge à 5 s, réconciliation
+  débouncée, pas de flou simultané sur tous les éléments).
+
+Rapport détaillé, ligne par ligne (PASS / FAIL / NON EXÉCUTÉ) :
+[`CozyDesk-source-1.0.0/CozyDesk/docs/QA-FINAL-2.0.md`](CozyDesk-source-1.0.0/CozyDesk/docs/QA-FINAL-2.0.md).
