@@ -1,6 +1,6 @@
 name: Build CozyDesk Minimal 2.0 (Windows)
 
-# Produit les deux artefacts Windows à partir du code source réel :
+# Produit et VÉRIFIE les deux artefacts Windows à partir du code source réel :
 #   CozyDesk-Minimal-2.0-Portable.exe
 #   CozyDesk-Minimal-2.0-Setup.exe
 on:
@@ -48,6 +48,67 @@ jobs:
       - name: List release output
         run: Get-ChildItem release | Select-Object Name, Length
 
+      # ---------- Vérification du contenu réellement empaqueté ----------
+      - name: Verify app.asar contains the 2.0 redesign
+        run: |
+          node -e @'
+          const asar = require("asar");
+          const p = "release/win-unpacked/resources/app.asar";
+          const files = asar.listPackage(p);
+          const read = (f) => asar.extractFile(p, f.replace(/^\//, "")).toString();
+
+          const pkg = JSON.parse(read("/package.json"));
+          if (pkg.version !== "2.0.0") throw new Error("version inattendue : " + pkg.version);
+          console.log("asar package version :", pkg.version);
+
+          const css = files.filter((f) => f.endsWith(".css")).map(read).join("");
+          const js = files.filter((f) => f.endsWith(".js")).map(read).join("");
+
+          const checks = {
+            "hero clock (CSS)": css.includes("hero-clock"),
+            "transparent widgets (CSS)": css.includes("data-appearance") && css.includes("hero-clock"),
+            "workspace add button (JS)": js.includes("workspace-add"),
+            "widget library (JS)": js.includes("library-panel"),
+            "dock launcher (JS)": js.includes("launcher-grid"),
+            "workspace settings (JS)": js.includes("Espace de travail") || js.includes("Bureau"),
+            "greeting (JS)": js.includes("Bon après-midi")
+          };
+          let failed = false;
+          for (const [name, ok] of Object.entries(checks)) {
+            console.log((ok ? "OK   " : "FAIL ") + name);
+            if (!ok) failed = true;
+          }
+          if (failed) throw new Error("le paquet ne contient pas la refonte 2.0");
+          console.log("app.asar vérifié :", files.length, "entrées");
+          '@
+
+      # ---------- Lancement réel de l'exécutable empaqueté ----------
+      - name: Smoke-test the packaged executable
+        run: |
+          $exe = "release\win-unpacked\CozyDesk.exe"
+          $png = Join-Path $PWD "release\smoke-2.0.png"
+          if (-not (Test-Path $exe)) { throw "CozyDesk.exe introuvable" }
+          $proc = Start-Process -FilePath $exe `
+            -ArgumentList "--smoke-test=$png", "--open=tasks,notes,settings", "--wait=7000" `
+            -PassThru -Wait
+          "exit code : $($proc.ExitCode)"
+          if (-not (Test-Path $png)) { throw "aucune capture produite : l'application n'a pas démarré" }
+          $size = (Get-Item $png).Length
+          "capture : $size octets"
+          if ($size -lt 20000) { throw "capture trop petite, rendu suspect : $size octets" }
+          Add-Type -AssemblyName System.Drawing
+          $img = [System.Drawing.Image]::FromFile($png)
+          "dimensions : $($img.Width)x$($img.Height)"
+          $img.Dispose()
+          if ($img.Width -lt 800) { throw "fenêtre trop petite" }
+
+      - name: Verify persistence directory created
+        run: |
+          $dir = Join-Path $env:APPDATA "CozyDesk"
+          "userData : $dir"
+          if (-not (Test-Path $dir)) { throw "le répertoire de données n'a pas été créé" }
+          Get-ChildItem $dir -Recurse -Depth 2 | Select-Object -First 15 FullName
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -56,6 +117,7 @@ jobs:
           path: |
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/smoke-2.0.png
             CozyDesk-source-1.0.0/CozyDesk/release/win-unpacked/**
 
       - name: Publish GitHub release (tag builds only)
@@ -69,7 +131,10 @@ jobs:
             - `CozyDesk-Minimal-2.0-Portable.exe` : version portable, aucune installation.
             - `CozyDesk-Minimal-2.0-Setup.exe` : installateur (choix du répertoire, raccourcis).
 
-            Compilé depuis les sources de ce dépôt sur un runner Windows officiel.
+            Compilé depuis les sources de ce dépôt sur un runner Windows officiel,
+            puis vérifié automatiquement : contenu de `app.asar`, lancement réel de
+            l'exécutable empaqueté (capture d'écran), création du répertoire de données.
           files: |
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Portable.exe
             CozyDesk-source-1.0.0/CozyDesk/release/CozyDesk-Minimal-2.0-Setup.exe
+            CozyDesk-source-1.0.0/CozyDesk/release/smoke-2.0.png
