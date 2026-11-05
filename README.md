@@ -1,134 +1,144 @@
 # CozyDesk 2.0
 
-**Bureau premium minimaliste — horloge centrale, widgets transparents, dock discret. Focus, tâches, notes, musique, ambiance, habitudes. 100 % local, sans compte, sans serveur.**
+Bureau premium minimaliste pour Windows : horloge centrale, widgets transparents,
+dock discret. Focus, tâches, notes, musique, ambiance, habitudes — **100 % local,
+sans compte, sans serveur**.
 
-CozyDesk est une application Windows construite avec **Electron + React + TypeScript + Vite**, habillée d'un design system **Liquid Glass** complet (5 matériaux de verre, 8 thèmes, mode clair/sombre, accent personnalisé).
+![CozyDesk 2.0 — bureau principal](https://github.com/Spoonle/CosyApp/releases/download/v2.0.0/smoke-2.0.png)
 
-La version **2.0** repense la hiérarchie visuelle : trois widgets par défaut au lieu de neuf,
-horloge principale configurable, widgets transparents, barre de titre fine, dock minimal
-avec auto-masquage, et une section de réglages « Bureau » complète.
-Détails et migrations : [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) ·
-recette QA : [`docs/QA-2.0.md`](docs/QA-2.0.md) ·
-**rapport de la QA finale** : [`docs/QA-FINAL-2.0.md`](docs/QA-FINAL-2.0.md).
+## Télécharger
 
-**Téléchargement des exécutables Windows :** [`releases/tag/v2.0.0`](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)
-(`CozyDesk-2.0-Final-Portable.exe`, `CozyDesk-2.0-Final-Setup.exe`,
-`CozyDesk-2.0-Final-Source.zip`).
+Dernière version publiée : **[releases/tag/v2.0.0](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)**
 
-Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
+| Fichier | Rôle |
+|---|---|
+| `CozyDesk-2.0-Final-Portable.exe` | version portable, aucune installation |
+| `CozyDesk-2.0-Final-Setup.exe` | installateur (dossier au choix, raccourcis) |
+| `CozyDesk-2.0-Final-Source.zip` | sources exactes de la compilation |
 
----
-
-## Démarrage rapide
-
-### Utiliser l'application (portable)
-
-1. Lancez `CozyDesk-2.0-Final-Portable.exe` (ou `CozyDesk-2.0-Final-Setup.exe` pour une installation).
-2. C'est tout — vos données restent dans `%APPDATA%/CozyDesk` (IndexedDB + sauvegardes JSON dans `backups/`) et la version 2.0 relit celles de la 1.0.
-
-### Développer / reconstruire
-
-Prérequis : **Node.js 20+** (aucun compilateur natif).
-
-```bash
-npm install      # installe les dépendances
-npm run dev      # développement (Vite + Electron, rechargement à chaud)
-npm run typecheck
-npm run lint
-npm run test     # 84 tests automatisés (vitest)
-npm run build    # typecheck + lint + tests + build complet
-npm run dist:win # build + installateur Windows (NSIS) + portable
-```
-
-`npm run dist` sur une machine **Windows** produit :
-
-- `release/CozyDesk-2.0-Final-Setup.exe` — installateur assisté (choix du dossier, raccourcis bureau + menu démarrer) ;
-- `release/CozyDesk-2.0-Final-Portable.exe` — version portable mono-fichier.
-
-Sous Linux sans `wine`, utilisez `npm run dist:win:nosign`.
-La compilation Windows est aussi automatisée : `.github/workflows/build-windows.yml`
-(runner `windows-latest`) publie les deux exécutables.
-
-> **Note build Linux** : la finalisation de l'installateur NSIS et l'incrustation de l'icône dans l'exe nécessitent `wine`. Le paquet portable fourni ici a été assemblé et vérifié sans cette étape ; sur Windows, `npm run dist` fait tout nativement.
-
----
+Les exécutables sont produits par GitHub Actions sur un runner Windows officiel, à
+partir de ce dépôt, puis vérifiés automatiquement (contenu de `app.asar`, lancement
+réel, capture d'écran, création du répertoire de données).
 
 ## Fonctionnalités
 
-### Espace de travail
+- **Bureau** : horloge centrale configurable, 12 widgets (horloge, date, pomodoro,
+  tâches, progression, calendrier, musique, citation, habitudes, note rapide,
+  statistiques, météo), grille 12 colonnes, dispositions sauvegardables.
+- **12 modules** dans des fenêtres flottantes : Pomodoro, Tâches, Notes, Musique,
+  Ambiance, Fonds d'écran, Calendrier, Statistiques, Habitudes, Étude, Journal,
+  Paramètres.
+- **Design system Liquid Glass** : 5 matériaux, 8 thèmes, clair/sombre, accent
+  personnalisé, animations réduites sur demande.
+- **Données locales** : IndexedDB (Dexie) pour les contenus, `localStorage` pour les
+  préférences d'interface, sauvegardes automatiques, export/import JSON.
+- **Sécurité Electron** : `contextIsolation`, `sandbox`, aucune API Node dans le
+  rendu, IPC validé, protocole de fichiers en liste blanche, CSP stricte.
 
-- **Dashboard à widgets** : horloge, date & progression, Pomodoro, tâches prioritaires, progression du jour, mini-calendrier, musique, citation, habitudes, note rapide, statistiques, météo (optionnelle, source réelle Open-Meteo). Widgets déplaçables, redimensionnables, masquables, disposition persistée, réinitialisation en un clic.
-- **Fenêtres flottantes internes** : déplacement, redimensionnement 8 poignées, minimisation, maximisation, fermeture, gestion du focus et du z-index, aimantation aux bords (moitié gauche/droite/plein écran), restauration des positions au redémarrage.
-- **Dock flottant** animé (magnification, indicateurs de fenêtres ouvertes, fermeture au clic droit).
-- **Palette de commandes `Ctrl+K`** : recherche floue sur ~45 commandes (ouvrir un module, créer une tâche/note, démarrer un Pomodoro, changer de thème, exporter/importer, profils graphiques…).
-- **Raccourcis** : `Ctrl+K` palette · `Ctrl+Maj+D` édition du dashboard.
+## Pile technique
 
-### Les 12 modules
-
-| Module | Fonctionnalités réelles |
+| Couche | Technologie |
 |---|---|
-| **Pomodoro** | Moteur par horodatage (fiable fenêtre minimisée), durées configurables, pause/reprise/réinitialisation, cycles et pause longue, notifications système + carillon WebAudio, historique journalisé (IndexedDB), association à une tâche, rattrapage automatique des phases écoulées pendant l'absence. |
-| **Tâches** | CRUD complet, échéances, 4 priorités, catégories colorées, tags, sous-tâches, statuts (actives/terminées/archivées), recherche, filtres, 4 tris, sauvegarde automatique de l'éditeur. |
-| **Notes** | Liste + éditeur, recherche, tags, favoris, épinglage, sauvegarde automatique (600 ms), historique des 20 dernières révisions restaurables. |
-| **Musique** | Import de fichiers locaux (MP3, FLAC, OGG, M4A…), métadonnées réelles (music-metadata) avec repli sur le nom de fichier, pochette d'album, file d'attente, lecture aléatoire, répétition (off/tout/piste), volume, playlists, Media Session (touches système). Lecture via protocole sécurisé en liste blanche. |
-| **Ambiance** | 7 sons **synthétisés en temps réel** (WebAudio) : pluie, forêt (oiseaux), vent, feu de cheminée, océan, café, bruit blanc. Volume indépendant par canal, mélange simultané, volume général, reprise au démarrage optionnelle. Aucun fichier audio embarqué. |
-| **Fonds d'écran** | 6 dégradés intégrés (variantes clair/sombre), import d'images et vidéos locales, galerie, voile d'assombrissement réglable, pause automatique des vidéos masquées, désactivation selon profil. |
-| **Calendrier** | Vues mois/semaine/jour, événements horodatés ou journée entière, rappels **réellement fonctionnels** (vérification toutes les 30 s, notification système, anti-doublon), couleurs, association à des tâches. |
-| **Statistiques** | Focus du jour/semaine, sessions Pomodoro, tâches terminées, séries d'habitudes, graphiques 7/14 jours, **heatmap 18 semaines** — tout calculé sur les données réelles locales. |
-| **Habitudes** | Création, 3 types de fréquence (quotidienne, jours précis, X fois/semaine), validation quotidienne, séries actuelles et records, taux de complétion 30 jours, calendrier de progression mensuel. |
-| **Étude** | Matières, chapitres avec progression, sessions chronométrées, objectif hebdomadaire, flashcards avec **répétition espacée SM-2** (4 notes de rappel, facilité bornée, planification testée). |
-| **Journal** | Une entrée par jour, humeur (5 niveaux), navigation entre jours, recherche plein texte, sauvegarde automatique. |
-| **Paramètres** | 8 thèmes × 2 modes, accent HSL personnalisé, intensités de flou et transparence, réduction des animations, 3 profils graphiques, notifications, météo (Open-Meteo, optionnelle), données : compteurs, export/import JSON, sauvegardes restaurables, scan des données d'une installation antérieure. |
+| Application de bureau | Electron 33 |
+| Interface | React 18 + TypeScript 5.7 (strict) |
+| Build | Vite 5 (rendu) + esbuild (processus principal) |
+| État | Zustand 5 (7 stores persistés) |
+| Données | Dexie 4 (IndexedDB, 16 tables) |
+| Icônes | lucide-react |
+| Tests | Vitest 2 + Testing Library + fake-indexeddb |
+| Empaquetage | electron-builder 25 (NSIS + portable) |
 
----
+Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 
-## Sécurité (Electron)
+## Prérequis
 
-- `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true` ;
-- API exposition **uniquement** via `contextBridge` (`window.cozydesk`), typée de bout en bout ;
-- IPC validé (types, longueurs, chemins absolus, extensions en liste blanche) ;
-- **aucun accès disque arbitraire** : les fichiers locaux passent par des boîtes de dialogue natives ou une validation stricte, puis sont servis par le protocole interne `cozydesk-file://` (liste blanche par session, streaming, plages HTTP) ;
-- écritures limitées aux chemins issus d'une boîte d'enregistrement + dossier de sauvegardes contrôlé ;
-- CSP stricte ; navigation et fenêtres pop-up bloquées ; permissions limitées aux notifications ; liens externes `https` uniquement.
+- **Node.js 20 ou plus** (le projet est développé et testé avec Node 22)
+- npm 10+
+- Windows pour produire les exécutables (Linux/macOS suffisent pour développer,
+  tester et construire le rendu)
 
-## Données & confidentialité
+## Installation et développement
 
-- Stockage **100 % local** : IndexedDB (Dexie, schéma versionné) + `localStorage` pour les préférences ;
-- sauvegarde automatique quotidienne au démarrage + avant chaque import/migration (30 instantanés internes + copie fichier dans `userData/backups`) ;
-- export/import JSON complet avec validation enregistrement par enregistrement ;
-- **préservation des données existantes** : scan non destructeur des anciennes clés localStorage/IndexedDB « CozyDesk » avec import best-effort (voir `docs/MIGRATION.md`) ;
-- aucune télémétrie, aucun compte ; seule requête réseau possible : la météo optionnelle (Open-Meteo, si configurée).
-
-## Performance
-
-- Chargement paresseux des 12 modules (bundles séparés) ;
-- 3 profils graphiques : **Haute qualité** (verre complet), **Basculée**, **Performance** (flou retiré, vidéos figées) ;
-- vidéos en pause quand la fenêtre est masquée ; blobs d'ambiance figés en profil Performance ;
-- respect de `prefers-reduced-motion` et du réglage utilisateur.
-
-## Structure du projet
-
+```bash
+git clone https://github.com/Spoonle/CosyApp.git
+cd CosyApp
+npm ci                 # installation reproductible
+npm run dev            # Vite + Electron, rechargement à chaud
 ```
-CozyDesk/
-├── electron/            # processus principal (main, preload, IPC, fenêtres)
+
+Sans interface graphique (CI, conteneur), l'application se construit et se teste
+quand même :
+
+```bash
+npm run build          # typecheck + lint + tests + build rendu + build Electron
+npm run preview:web    # sert dist/ dans le navigateur (aperçu, pas l'application)
+```
+
+L'aperçu navigateur ne remplace pas l'application : les contrôles de fenêtre
+Electron, les sélecteurs de fichiers locaux et les médias locaux y sont inactifs,
+et les données vivent dans l'IndexedDB du navigateur.
+
+## Scripts
+
+| Commande | Effet |
+|---|---|
+| `npm run dev` | Vite (5173) + Electron en mode développement |
+| `npm run build` | typecheck → lint → tests → `dist-electron/` → `dist/` |
+| `npm run typecheck` | `tsc` sur le rendu puis sur le processus principal |
+| `npm run lint` | ESLint 9 (aucun avertissement toléré) |
+| `npm run test` | Vitest (15 fichiers, 143 tests) — `test:watch` en continu |
+| `npm run package` | build + `electron-builder --win` (portable + installateur) |
+| `npm run package:dir` | paquet non compressé (`release/win-unpacked`) |
+| `npm run package:nosign` | paquet Windows sans signature/édition de l'exe (Linux sans wine) |
+| `npm run preview:web` | build + `vite preview` sur http://localhost:4173 |
+
+## Structure du dépôt
+
+```text
+.
 ├── src/
-│   ├── app/             # racine React + séquence de démarrage
-│   ├── components/      # design system verre, dock, fenêtres, palette, widgets, charts
-│   ├── modules/         # 12 modules métier (chargés paresseusement)
-│   ├── hooks/ services/ stores/ styles/ types/ i18n/ data/
-├── tests/               # 61 tests vitest (moteurs, stockage, stores, composants)
-├── scripts/             # build esbuild, générateur d'icône
-├── docs/                # audit, migration données, campagne QA
-├── electron-builder.yml # packaging Windows
-└── vite.config.ts
+│   ├── main/            processus principal Electron
+│   │   ├── index.ts     cycle de vie, protocole privilégié, smoke-test
+│   │   ├── windows/     création et politique de la fenêtre principale
+│   │   ├── ipc/         canaux IPC, validation, fichiers, dialogues
+│   │   └── services/    configuration centrale (chemins, mode dev)
+│   ├── preload/         passerelle unique rendu → principal (contextBridge)
+│   ├── renderer/        application React
+│   │   ├── app/         composition racine
+│   │   ├── components/  design system, dashboard, widgets, dock, fenêtres
+│   │   ├── modules/     les 12 modules + registre
+│   │   ├── services/    stockage, audio, dates, notifications, moteurs
+│   │   ├── stores/      état Zustand persisté
+│   │   ├── styles/      tokens, thèmes, mise en page, widgets
+│   │   └── types/       modèle de domaine
+│   └── shared/          contrat IPC partagé preload ↔ rendu
+├── tests/               tests Vitest (unitaires, intégration, non-régression)
+├── scripts/             build Electron, génération d'icône, vérification du paquet
+├── build/               icônes utilisées par electron-builder
+├── docs/                architecture, données, widgets, build, QA
+└── .github/workflows/   CI Windows : tests, empaquetage, vérification, release
 ```
+
+Détail des frontières et du flux de données : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Documentation
 
-- `docs/AUDIT.md` — audit initial et décisions ;
-- `docs/MIGRATION.md` — préservation et migration des données ;
-- `docs/QA.md` — campagne de tests détaillée et problèmes connus.
+| Document | Contenu |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | processus, frontières, flux de données |
+| [`docs/IPC.md`](docs/IPC.md) | contrat IPC et politique de sécurité |
+| [`docs/PERSISTENCE.md`](docs/PERSISTENCE.md) | IndexedDB, migrations, sauvegardes |
+| [`docs/STATE-MANAGEMENT.md`](docs/STATE-MANAGEMENT.md) | stores Zustand et leurs invariants |
+| [`docs/WIDGETS.md`](docs/WIDGETS.md) | système de widgets et dispositions |
+| [`docs/BUILD-RELEASE.md`](docs/BUILD-RELEASE.md) | build local, CI, publication |
+| [`docs/QA-FINAL-2.0.md`](docs/QA-FINAL-2.0.md) | rapport de QA finale (PASS/FAIL) |
+| [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) | refonte visuelle 2.0 |
 
-## Licences
+## Contribuer
 
-Application : MIT. Icônes : Lucide (ISC). Packaging : electron-builder. Métadonnées audio : music-metadata.
+Les conventions de code, de commit, de test et de pull request sont décrites dans
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Licence
+
+MIT — voir [`LICENSE`](LICENSE).

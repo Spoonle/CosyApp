@@ -24,7 +24,7 @@ L'ancien exécutable 1.0 n'est ni renommé, ni déplacé, ni écrasé.
 ## 1 bis. Essayer sans rien installer (aperçu navigateur)
 
 ```bash
-cd CozyDesk-source-1.0.0/CozyDesk
+cd .
 npm ci
 npm run build:electron && npx vite build      # produit dist/
 npx vite preview --config preview.config.mjs  # http://localhost:4173
@@ -116,4 +116,4 @@ Tests ajoutés dans cette phase :
   débouncée, pas de flou simultané sur tous les éléments).
 
 Rapport détaillé, ligne par ligne (PASS / FAIL / NON EXÉCUTÉ) :
-[`CozyDesk-source-1.0.0/CozyDesk/docs/QA-FINAL-2.0.md`](CozyDesk-source-1.0.0/CozyDesk/docs/QA-FINAL-2.0.md).
+[`docs/QA-FINAL-2.0.md`](docs/QA-FINAL-2.0.md).

@@ -41,7 +41,7 @@ Ces limites sont réelles et explicitées, pas contournées :
 
 Conséquence : **l'exécutable Windows est compilé par GitHub Actions sur un runner
 `windows-latest`**, à partir de ce dépôt. C'est la même chaîne `electron-builder` que
-`npm run dist:win`, donc l'exe contient bien le code redesigné (front `dist/` + main
+`npm run package`, donc l'exe contient bien le code redesigné (front `dist/` + main
 `dist-electron/`), et non un ancien binaire renommé.
 
 ## 3. Vérification du paquet Windows — exécutée et réussie

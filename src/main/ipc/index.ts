@@ -83,11 +83,18 @@ export function registerIpc(): void {
     return saveJsonDialog(event.sender, defaultName);
   });
 
+  /**
+   * Ré-autorise des chemins déjà choisis par l'utilisateur et persistés
+   * (fond d'écran, piste audio). Les fichiers JSON sont volontairement exclus :
+   * un import de sauvegarde doit toujours passer par la boîte de dialogue,
+   * sinon le rendu pourrait lire n'importe quel .json du disque.
+   */
   ipcMain.handle('files:grant', (_event, payload: unknown) => {
     if (!isPlainObject(payload)) throw new Error('Paramètres non valides.');
     const kind = payload.kind;
     const paths = payload.paths;
     if (!isFileKind(kind)) throw new Error('Type de fichier non valide.');
+    if (kind === 'json') throw new Error('Les fichiers JSON passent par une boîte de dialogue.');
     if (!isStringArray(paths)) throw new Error('Liste de chemins non valide.');
     return grantFiles(paths, kind as FileKind);
   });

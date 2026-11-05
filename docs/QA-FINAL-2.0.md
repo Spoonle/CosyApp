@@ -64,9 +64,9 @@ chemin visible (bouton de fenêtre, réglage unique Bureau → Ambiance).
 
 | Point | Verdict | Preuve |
 |---|---|---|
-| `contextIsolation` activé, `nodeIntegration` désactivé | PASS | `electron/main.ts` |
-| API exposée via `contextBridge` uniquement | PASS | `electron/preload.ts` |
-| Validation des canaux IPC et des chemins | PASS | `electron/ipc/validate.ts` (liste blanche + `isInsideUserData`) |
+| `contextIsolation` activé, `nodeIntegration` désactivé | PASS | `src/main/index.ts` |
+| API exposée via `contextBridge` uniquement | PASS | `src/preload/index.ts` |
+| Validation des canaux IPC et des chemins | PASS | `src/main/ipc/validate.ts` (liste blanche + `isInsideUserData`) |
 | Aucune réinitialisation d'IndexedDB au démarrage | PASS | aucun `deleteDatabase`/`clear()` hors actions explicites de l'utilisateur |
 | Migrations additives (jamais destructrices) | PASS | migrations v2 → v3 testées |
 | Export / import / sauvegardes | PASS | écriture atomique + validation avant écriture (tests d'intégrité) |

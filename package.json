@@ -10,15 +10,16 @@
   "scripts": {
     "dev": "concurrently -k -n vite,electron -c cyan,green \"vite\" \"npm run dev:electron\"",
     "dev:electron": "npm run build:electron && wait-on tcp:127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron . --dev",
+    "build": "npm run typecheck && npm run lint && npm run test && npm run build:electron && vite build",
     "build:electron": "node scripts/build-electron.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "build": "npm run typecheck && npm run lint && npm run test && npm run build:electron && vite build",
-    "dist": "npm run build && electron-builder --win",
-    "dist:dir": "npm run build && electron-builder --dir",
-    "dist:win": "npm run build && electron-builder --win --x64 --publish never",
-    "dist:win:nosign": "npm run build && electron-builder --win --x64 --publish never --config.win.signAndEditExecutable=false"
+    "test:watch": "vitest",
+    "package": "npm run build && electron-builder --win --x64 --publish never",
+    "package:dir": "npm run build && electron-builder --dir",
+    "package:nosign": "npm run build && electron-builder --win --x64 --publish never --config.win.signAndEditExecutable=false",
+    "preview:web": "npm run build && vite preview --config preview.config.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -43,7 +44,7 @@
     "globals": "^15.15.0",
     "jsdom": "^25.0.1",
     "lucide-react": "^0.469.0",
-    "music-metadata": "^10.9.1",
+    "music-metadata": "^12.3.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "~5.7.2",

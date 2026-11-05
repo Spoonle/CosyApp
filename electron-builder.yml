@@ -21,7 +21,7 @@ win:
   # CozyDesk 2.0 : artefacts distincts de la version 1.0
   # (l'ancien exécutable reste intact, rien n'est écrasé).
   # L'incrustation de l'icône dans le .exe s'effectue nativement sous Windows.
-  # Pour compiler sous Linux sans wine : `npm run dist:win:nosign`.
+  # Pour compiler sous Linux sans wine : `npm run package:nosign`.
   signAndEditExecutable: true
   target:
     - target: nsis

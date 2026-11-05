@@ -149,13 +149,13 @@ Sur Windows (recommandé, icône incrustée nativement) :
 
 ```
 npm ci
-npm run dist:win
+npm run package
 ```
 
 Sous Linux sans wine :
 
 ```
-npm run dist:win:nosign     # signAndEditExecutable=false
+npm run package:nosign     # signAndEditExecutable=false
 ```
 
 L'environnement d'exécution de cette refonte ne peut pas télécharger le runtime Electron

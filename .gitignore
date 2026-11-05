@@ -1,8 +1,31 @@
+# Dépendances
 node_modules/
+
+# Sorties de build
 dist/
 dist-electron/
 release/
+*.tsbuildinfo
+.eslintcache
+
+# Tests
+coverage/
+.vitest/
+
+# Journaux et fichiers système
 *.log
+npm-debug.log*
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Éditeurs (préférences personnelles)
 .vscode/
+.idea/
+*.swp
+
+# Configuration locale et secrets
+.env
+.env.*
+!.env.example
+*.local
