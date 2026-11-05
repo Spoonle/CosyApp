@@ -164,12 +164,12 @@ par `.github/workflows/build-windows.yml` sur un runner `windows-latest`, qui ex
 typecheck, lint, tests, build, `electron-builder --win --x64`, puis vérifie le paquet
 (contenu de `app.asar`, lancement réel du binaire, capture d'écran) avant publication.
 
-Exécutables produits (run `42077128071`, conclusion success) :
+Exécutables produits (run `42077660134`, conclusion success) :
 `https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0`
 
 | Fichier | Taille |
 |---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 026 octets |
+| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 025 octets |
 | `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets |
 
 Voir `docs/QA-2.0.md` pour le détail des vérifications et des limites.

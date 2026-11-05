@@ -47,7 +47,7 @@ Conséquence : **l'exécutable Windows est compilé par GitHub Actions sur un ru
 ## 3. Vérification du paquet Windows — exécutée et réussie
 
 Le workflow `.github/workflows/build-windows.yml` a été exécuté sur un runner
-`windows-latest` (run `42077128071`, conclusion **success**) à partir du commit de la branche.
+`windows-latest` à partir du commit livré (dernier run `42077660134`, conclusion **success**).
 Trois vérifications ont porté sur le binaire réellement produit :
 
 **a. Contenu de `app.asar`** (`scripts/verify-package.cjs`) — **9/9** :
@@ -69,7 +69,7 @@ démontre que le même vérificateur **refuse** un ancien paquet 1.0 renommé.
 
 **b. Lancement de l'exécutable empaqueté** — `win-unpacked\CozyDesk.exe` démarré avec
 `--smoke-test --open=tasks,notes,settings --wait=7000` : code de sortie **0**, capture
-produite de **868 033 octets** en **1024 × 720**, modules ouverts pendant la capture.
+produite de **868 040 octets** en **1024 × 720**, modules ouverts pendant la capture.
 C'est le binaire du paquet, pas le serveur Vite.
 
 **c. Persistance** — le répertoire `%APPDATA%\CozyDesk` est créé au lancement
@@ -79,9 +79,9 @@ C'est le binaire du paquet, pas le serveur Vite.
 
 | Fichier | Taille |
 |---|---|
-| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 026 octets |
+| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 025 octets |
 | `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets |
-| `smoke-2.0.png` (preuve de rendu) | 868 033 octets |
+| `smoke-2.0.png` (preuve de rendu) | 868 040 octets |
 
 Publication : `https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0` — l'exécutable 1.0
 d'origine n'est ni déplacé ni écrasé.
