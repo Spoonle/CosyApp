@@ -994,3 +994,10 @@
   letter-spacing: 0.09em;
   color: rgb(var(--text-muted-rgb));
 }
+
+/* ---------- Onglets du module Paramètres : ne débordent jamais ---------- */
+
+.settings-tabs {
+  flex-wrap: wrap;
+  max-width: 100%;
+}

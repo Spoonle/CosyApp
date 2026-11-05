@@ -53,7 +53,7 @@ export default function SettingsModule(): React.ReactNode {
         <h2>Paramètres</h2>
       </div>
       <div className="module-body">
-        <div className="segmented" style={{ marginBottom: 16 }}>
+        <div className="segmented settings-tabs" style={{ marginBottom: 16 }}>
           <button data-active={section === 'espace'} onClick={() => setSection('espace')}>
             Bureau
           </button>

@@ -57,7 +57,7 @@ export function WorkspaceSection(): React.ReactNode {
         <Field label="Taille">
           <Segmented<ClockSize>
             value={ws.clock.size}
-            onChange={(size) => setWorkspace({ clock: { ...ws.clock, size } })}
+            onChange={(size) => setWorkspace({ clock: { size } })}
             options={[
               { value: 'md', label: 'Moyenne' },
               { value: 'lg', label: 'Grande' },
@@ -69,7 +69,7 @@ export function WorkspaceSection(): React.ReactNode {
         <Field label="Style d’affichage">
           <Segmented<ClockStyle>
             value={ws.clock.style}
-            onChange={(style) => setWorkspace({ clock: { ...ws.clock, style } })}
+            onChange={(style) => setWorkspace({ clock: { style } })}
             options={[
               { value: 'stacked', label: 'Empilé' },
               { value: 'inline', label: 'En ligne' },
@@ -82,26 +82,26 @@ export function WorkspaceSection(): React.ReactNode {
           label="Secondes"
           hint="Affiche les secondes après les minutes."
           checked={ws.clock.seconds}
-          onChange={(seconds) => setWorkspace({ clock: { ...ws.clock, seconds } })}
+          onChange={(seconds) => setWorkspace({ clock: { seconds } })}
         />
         <ToggleRow
           label="Date complète"
           hint="Le jour et le mois sous l’heure."
           checked={ws.clock.date}
-          onChange={(date) => setWorkspace({ clock: { ...ws.clock, date } })}
+          onChange={(date) => setWorkspace({ clock: { date } })}
         />
         <ToggleRow
           label="Salut discret"
           hint="Bonjour, bonsoir… selon l’heure."
           checked={ws.clock.greeting}
-          onChange={(greeting) => setWorkspace({ clock: { ...ws.clock, greeting } })}
+          onChange={(greeting) => setWorkspace({ clock: { greeting } })}
         />
         <Field label="Prénom du salut (facultatif)">
           <Input
             value={ws.clock.name}
             placeholder="Votre prénom"
             maxLength={24}
-            onChange={(e) => setWorkspace({ clock: { ...ws.clock, name: e.target.value } })}
+            onChange={(e) => setWorkspace({ clock: { name: e.target.value } })}
           />
         </Field>
       </div>
@@ -113,7 +113,7 @@ export function WorkspaceSection(): React.ReactNode {
         <Field label="Apparence par défaut">
           <Segmented<WidgetAppearance>
             value={ws.widgets.appearance}
-            onChange={(appearance) => setWorkspace({ widgets: { ...ws.widgets, appearance } })}
+            onChange={(appearance) => setWorkspace({ widgets: { appearance } })}
             options={[
               { value: 'transparent', label: 'Transparent' },
               { value: 'subtle', label: 'Subtil' },
@@ -141,7 +141,7 @@ export function WorkspaceSection(): React.ReactNode {
             min={0.4}
             max={2}
             step={0.05}
-            onChange={(spacing) => setWorkspace({ widgets: { ...ws.widgets, spacing } })}
+            onChange={(spacing) => setWorkspace({ widgets: { spacing } })}
             ariaLabel="Espacement des widgets"
           />
         </div>
@@ -149,7 +149,7 @@ export function WorkspaceSection(): React.ReactNode {
         <Field label="Marges du bureau">
           <Segmented<DashboardDensity>
             value={ws.dashboard.density}
-            onChange={(density) => setWorkspace({ dashboard: { ...ws.dashboard, density } })}
+            onChange={(density) => setWorkspace({ dashboard: { density } })}
             options={[
               { value: 'tight', label: 'Compactes' },
               { value: 'comfortable', label: 'Confortables' },
@@ -170,19 +170,19 @@ export function WorkspaceSection(): React.ReactNode {
           label="Afficher le dock"
           hint="Les modules restent accessibles par Ctrl+K."
           checked={ws.dock.visible}
-          onChange={(visible) => setWorkspace({ dock: { ...ws.dock, visible } })}
+          onChange={(visible) => setWorkspace({ dock: { visible } })}
         />
         <ToggleRow
           label="Masquer automatiquement"
           hint="Le dock réapparaît au survol du bord de l’écran."
           checked={ws.dock.autoHide}
-          onChange={(autoHide) => setWorkspace({ dock: { ...ws.dock, autoHide } })}
+          onChange={(autoHide) => setWorkspace({ dock: { autoHide } })}
         />
 
         <Field label="Position">
           <Segmented<DockPosition>
             value={ws.dock.position}
-            onChange={(position) => setWorkspace({ dock: { ...ws.dock, position } })}
+            onChange={(position) => setWorkspace({ dock: { position } })}
             options={[
               { value: 'bottom', label: 'Bas' },
               { value: 'left', label: 'Gauche' },

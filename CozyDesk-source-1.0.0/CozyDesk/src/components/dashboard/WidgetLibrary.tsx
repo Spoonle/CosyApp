@@ -89,7 +89,7 @@ export function WidgetLibrary({ onClose }: { onClose: () => void }): React.React
           <Segmented<WidgetAppearance>
             value={appearance}
             options={APPEARANCES.map((a) => ({ value: a.value, label: a.label }))}
-            onChange={(value) => setWorkspace({ widgets: { appearance: value, spacing: useSettingsStore.getState().workspace.widgets.spacing } })}
+            onChange={(value) => setWorkspace({ widgets: { appearance: value } })}
           />
         </section>
 

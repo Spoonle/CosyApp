@@ -1,8 +1,13 @@
-# CozyDesk 1.0.0
+# CozyDesk Minimal 2.0
 
-**Espace de travail desktop premium — focus, tâches, notes, musique, ambiance, habitudes. 100 % local, sans compte, sans serveur.**
+**Bureau premium minimaliste — horloge centrale, widgets transparents, dock discret. Focus, tâches, notes, musique, ambiance, habitudes. 100 % local, sans compte, sans serveur.**
 
 CozyDesk est une application Windows construite avec **Electron + React + TypeScript + Vite**, habillée d'un design system **Liquid Glass** complet (5 matériaux de verre, 8 thèmes, mode clair/sombre, accent personnalisé).
+
+La version **2.0** repense la hiérarchie visuelle : trois widgets par défaut au lieu de neuf,
+horloge principale configurable, widgets transparents, barre de titre fine, dock minimal
+avec auto-masquage, et une section de réglages « Bureau » complète.
+Détails et migrations : [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) · recette : [`docs/QA-2.0.md`](docs/QA-2.0.md).
 
 Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 
@@ -12,9 +17,8 @@ Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 
 ### Utiliser l'application (portable)
 
-1. Décompressez `CozyDesk-Portable-1.0.0.zip`.
-2. Lancez `CozyDesk.exe`.
-3. C'est tout — vos données restent dans `%APPDATA%/CozyDesk` (IndexedDB + sauvegardes JSON dans `backups/`).
+1. Lancez `CozyDesk-Minimal-2.0-Portable.exe` (ou `CozyDesk-Minimal-2.0-Setup.exe` pour une installation).
+2. C'est tout — vos données restent dans `%APPDATA%/CozyDesk` (IndexedDB + sauvegardes JSON dans `backups/`) et la version 2.0 relit celles de la 1.0.
 
 ### Développer / reconstruire
 
@@ -25,15 +29,19 @@ npm install      # installe les dépendances
 npm run dev      # développement (Vite + Electron, rechargement à chaud)
 npm run typecheck
 npm run lint
-npm run test     # 61 tests automatisés (vitest)
+npm run test     # 84 tests automatisés (vitest)
 npm run build    # typecheck + lint + tests + build complet
-npm run dist     # build + installateur Windows (NSIS) + portable
+npm run dist:win # build + installateur Windows (NSIS) + portable
 ```
 
 `npm run dist` sur une machine **Windows** produit :
 
-- `release/CozyDesk-Setup-1.0.0.exe` — installateur assisté (choix du dossier, raccourcis bureau + menu démarrer) ;
-- `release/CozyDesk-Portable-1.0.0.exe` — version portable mono-fichier.
+- `release/CozyDesk-Minimal-2.0-Setup.exe` — installateur assisté (choix du dossier, raccourcis bureau + menu démarrer) ;
+- `release/CozyDesk-Minimal-2.0-Portable.exe` — version portable mono-fichier.
+
+Sous Linux sans `wine`, utilisez `npm run dist:win:nosign`.
+La compilation Windows est aussi automatisée : `.github/workflows/build-windows.yml`
+(runner `windows-latest`) publie les deux exécutables.
 
 > **Note build Linux** : la finalisation de l'installateur NSIS et l'incrustation de l'icône dans l'exe nécessitent `wine`. Le paquet portable fourni ici a été assemblé et vérifié sans cette étape ; sur Windows, `npm run dist` fait tout nativement.
 

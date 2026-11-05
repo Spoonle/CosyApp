@@ -51,9 +51,17 @@ export function Dock(): React.ReactNode {
 
   return (
     <>
-      {dock.autoHide && <div className="dock-hot" data-position={dock.position} />}
+      {dock.autoHide && (
+        <div
+          className="dock-hot"
+          data-position={dock.position}
+          onMouseEnter={() => setRevealed(true)}
+          role="presentation"
+          aria-hidden="true"
+        />
+      )}
       <nav
-        className={clsx('dock', hidden && 'is-hidden')}
+        className={clsx('dock glass-float', hidden && 'is-hidden')}
         data-position={dock.position}
         data-autohide={dock.autoHide || undefined}
         data-revealed={revealed || undefined}

@@ -98,6 +98,15 @@ export interface PomodoroSettings {
   notifications: boolean;
 }
 
+/** Patch profond : chaque sous-section peut être modifiée partiellement. */
+export interface WorkspacePatch {
+  clock?: Partial<ClockSettings>;
+  widgets?: Partial<WorkspaceSettings['widgets']>;
+  dashboard?: Partial<WorkspaceSettings['dashboard']>;
+  dock?: Partial<WorkspaceSettings['dock']>;
+  motion?: MotionIntensity;
+}
+
 export interface SettingsState {
   theme: ThemeId;
   mode: ColorMode;
@@ -113,7 +122,7 @@ export interface SettingsState {
   weather: { city: string; lat: number; lon: number } | null;
   workspace: WorkspaceSettings;
   setSettings: (patch: Partial<SettingsState>) => void;
-  setWorkspace: (patch: Partial<WorkspaceSettings> & { clock?: Partial<ClockSettings> }) => void;
+  setWorkspace: (patch: WorkspacePatch) => void;
   setWallpaper: (patch: Partial<WallpaperSettings>) => void;
   setPomodoro: (patch: Partial<PomodoroSettings>) => void;
   resetAppearance: () => void;
