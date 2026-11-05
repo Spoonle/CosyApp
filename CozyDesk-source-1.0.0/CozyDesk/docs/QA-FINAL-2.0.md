@@ -73,8 +73,10 @@ chemin visible (bouton de fenêtre, réglage unique Bureau → Ambiance).
 
 ## 5. Compilation Windows et vérification du binaire
 
-Exécution CI de référence : **run 42080815752** (job `windows`), commit `dcace89`,
-conclusion **success**, tag `v2.0.0`.
+Exécution CI de référence : workflow « Build CozyDesk 2.0 (Windows) », tag `v2.0.0`,
+conclusion **success**. Les tailles ci-dessous sont celles des exécutables, stables
+d’une compilation à l’autre ; la taille de l’archive source est indiquée de façon
+indicative puisqu’elle contient la documentation, régénérée à chaque compilation.
 
 | Élément | Verdict | Preuve |
 |---|---|---|
@@ -82,7 +84,7 @@ conclusion **success**, tag `v2.0.0`.
 | Tests dans le pipeline | PASS | `npm run typecheck`, `lint`, `test` (143 tests) exécutés sur le runner avant empaquetage |
 | `CozyDesk-2.0-Final-Portable.exe` | PASS | produit, **81 681 579 octets**, annoté `notice Livrable` |
 | `CozyDesk-2.0-Final-Setup.exe` | PASS | produit, **81 895 868 octets**, annoté `notice Livrable` |
-| `CozyDesk-2.0-Final-Source.zip` | PASS | produit, **331 240 octets**, contenu testé par barrière de taille |
+| `CozyDesk-2.0-Final-Source.zip` | PASS | produit (≈ 330 Ko), contenu testé par barrière de taille et par inspection du zip |
 | Contenu réel de `app.asar` | PASS | `scripts/verify-package.cjs` : 42 entrées (1 CSS, 33 JS), **9/9 contrôles** |
 | Lancement du binaire empaqueté | PASS | `lance=True exit=0` |
 | Rendu de l'interface | PASS | capture 868 042 octets en 1024×720, publiée dans la release |
