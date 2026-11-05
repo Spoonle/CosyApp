@@ -161,5 +161,15 @@ npm run dist:win:nosign     # signAndEditExecutable=false
 L'environnement d'exécution de cette refonte ne peut pas télécharger le runtime Electron
 (les assets de release GitHub y sont bloqués) : la compilation Windows est donc réalisée
 par `.github/workflows/build-windows.yml` sur un runner `windows-latest`, qui exécute
-typecheck, lint, tests, build puis `electron-builder --win --x64` et publie les deux
-exécutables. Voir `docs/QA-2.0.md` pour le détail des vérifications et des limites.
+typecheck, lint, tests, build, `electron-builder --win --x64`, puis vérifie le paquet
+(contenu de `app.asar`, lancement réel du binaire, capture d'écran) avant publication.
+
+Exécutables produits (run `42077128071`, conclusion success) :
+`https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0`
+
+| Fichier | Taille |
+|---|---|
+| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 026 octets |
+| `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets |
+
+Voir `docs/QA-2.0.md` pour le détail des vérifications et des limites.

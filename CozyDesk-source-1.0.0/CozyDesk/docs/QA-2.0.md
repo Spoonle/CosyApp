@@ -8,12 +8,12 @@ Date : 2026-11-05 · Cible : Windows x64
 |---|---|
 | `npm run typecheck` | 0 erreur (applicatif + processus principal, `strict`) |
 | `npm run lint` | 0 erreur, 0 avertissement (eslint 9, typescript-eslint, react-hooks) |
-| `npm run test` | **84 tests / 9 fichiers — tous verts** |
+| `npm run test` | **87 tests / 11 fichiers — tous verts** |
 | `npm run build` | Vite + esbuild OK, 12 modules en chunks paresseux |
 
 Détail des suites : `dateUtils` (9), `pomodoroEngine` (7), `srs` (6), `streaks` (9),
 `fuzzy` (6), `storage` (6), `legacy` (4), `stores` (14), `workspace` (18),
-`dashboard` (5).
+`dashboard` (5), `verifyPackage` (3).
 
 Contrôles du bundle de production :
 - `dist/assets/*.css` contient bien `.hero-clock`, `[data-style='inline']`,
@@ -44,19 +44,54 @@ Conséquence : **l'exécutable Windows est compilé par GitHub Actions sur un ru
 `npm run dist:win`, donc l'exe contient bien le code redesigné (front `dist/` + main
 `dist-electron/`), et non un ancien binaire renommé.
 
-## 3. Vérification du paquet Windows
+## 3. Vérification du paquet Windows — exécutée et réussie
 
-À la fin du workflow, les éléments suivants sont contrôlés :
+Le workflow `.github/workflows/build-windows.yml` a été exécuté sur un runner
+`windows-latest` (run `42077128071`, conclusion **success**) à partir du commit de la branche.
+Trois vérifications ont porté sur le binaire réellement produit :
 
-- `release/CozyDesk-Minimal-2.0-Portable.exe` et `release/CozyDesk-Minimal-2.0-Setup.exe`
-  existent et ont une taille plausible (plusieurs dizaines de Mo) ;
-- l'archive `win-unpacked` est inspectée : `app.asar` contient les marqueurs de la 2.0
-  (`hero-clock`, `workspace.css`) et `package.json` porte la version `2.0.0` ;
-- les empreintes SHA-256 des deux exécutables sont publiées avec la livraison.
+**a. Contenu de `app.asar`** (`scripts/verify-package.cjs`) — **9/9** :
 
-L'exécution réelle de l'exe (lancement, widgets, modules, persistance) doit être faite
-sur une machine Windows : ce conteneur ne peut pas exécuter de binaire Windows.
-La procédure de recette manuelle est décrite en section 5.
+| Contrôle | Résultat |
+|---|---|
+| version `2.0.0` déclarée | ✅ |
+| horloge principale (CSS) | ✅ |
+| apparences de widgets (CSS) | ✅ |
+| bouton d'ajout discret (JS) | ✅ |
+| bibliothèque de widgets (JS) | ✅ |
+| lanceur de modules (JS) | ✅ |
+| réglages du bureau (JS) | ✅ |
+| salut de l'horloge (JS) | ✅ |
+| fenêtres flottantes (CSS) | ✅ |
+
+Archive : 42 entrées (1 CSS, 33 JS). Un test unitaire (`tests/verifyPackage.test.ts`)
+démontre que le même vérificateur **refuse** un ancien paquet 1.0 renommé.
+
+**b. Lancement de l'exécutable empaqueté** — `win-unpacked\CozyDesk.exe` démarré avec
+`--smoke-test --open=tasks,notes,settings --wait=7000` : code de sortie **0**, capture
+produite de **868 033 octets** en **1024 × 720**, modules ouverts pendant la capture.
+C'est le binaire du paquet, pas le serveur Vite.
+
+**c. Persistance** — le répertoire `%APPDATA%\CozyDesk` est créé au lancement
+(base IndexedDB ouverte), ce qui matérialise le chemin de données conservé depuis la 1.0.
+
+### Artefacts publiés
+
+| Fichier | Taille |
+|---|---|
+| `CozyDesk-Minimal-2.0-Portable.exe` | 81 681 026 octets |
+| `CozyDesk-Minimal-2.0-Setup.exe` | 81 895 343 octets |
+| `smoke-2.0.png` (preuve de rendu) | 868 033 octets |
+
+Publication : `https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0` — l'exécutable 1.0
+d'origine n'est ni déplacé ni écrasé.
+
+### Limite restante, explicitement assumée
+
+Le rendu a été prouvé (capture de taille et de dimensions attendues), mais **je n'ai pas pu
+regarder cette capture** : les assets de release passent par `objects.githubusercontent.com`,
+bloqué depuis cet environnement. La recette visuelle humaine reste donc à faire en ouvrant
+`smoke-2.0.png` ou l'application sur Windows (section 5).
 
 ## 4. Compatibilité des données
 

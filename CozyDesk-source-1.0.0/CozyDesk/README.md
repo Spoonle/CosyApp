@@ -9,6 +9,9 @@ horloge principale configurable, widgets transparents, barre de titre fine, dock
 avec auto-masquage, et une section de réglages « Bureau » complète.
 Détails et migrations : [`docs/REDESIGN-2.0.md`](docs/REDESIGN-2.0.md) · recette : [`docs/QA-2.0.md`](docs/QA-2.0.md).
 
+**Téléchargement des exécutables Windows :** [`releases/tag/v2.0.0`](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)
+(`CozyDesk-Minimal-2.0-Portable.exe`, `CozyDesk-Minimal-2.0-Setup.exe`).
+
 Aucune dépendance à Rust, Cargo, Tauri ou Visual Studio Build Tools.
 
 ---
