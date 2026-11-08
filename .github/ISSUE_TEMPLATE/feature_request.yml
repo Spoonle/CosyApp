@@ -1,0 +1,41 @@
+name: Proposer une évolution
+description: Idée d'amélioration ou nouvelle fonctionnalité
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        CozyDesk reste volontairement minimaliste et 100 % local : une évolution
+        qui ajoute un compte, un serveur ou de la télémétrie n'est pas retenue.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème à résoudre
+      description: Décrivez le besoin, pas seulement la solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solution proposée
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Domaine concerné
+      options:
+        - Widgets / dashboard
+        - Module (pomodoro, tâches, notes, musique, …)
+        - Apparence / thèmes
+        - Données et sauvegardes
+        - Performance
+        - Autre
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+    validations:
+      required: false

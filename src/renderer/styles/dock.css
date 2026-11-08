@@ -1,0 +1,198 @@
+/* ============================================================
+   CozyDesk 2.0 — Dock
+   Lanceur minimal : petites icônes, survol sobre, infobulles,
+   auto-masquage, ancrage configurable.
+   ============================================================ */
+
+.dock {
+  position: fixed;
+  z-index: var(--z-dock);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 20px;
+  max-width: calc(100vw - 32px);
+  transition:
+    transform 260ms var(--ease-out-soft),
+    opacity 200ms var(--ease-out-soft);
+  animation: fade-up 320ms var(--ease-out-soft) both;
+}
+
+/* --- Ancrage bas (par défaut) --- */
+.dock[data-position='bottom'] {
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  flex-direction: row;
+}
+.dock[data-position='bottom'].is-hidden {
+  transform: translateX(-50%) translateY(calc(100% + 24px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Ancrage latéral --- */
+.dock[data-position='left'],
+.dock[data-position='right'] {
+  top: 50%;
+  flex-direction: column;
+  padding: 8px 6px;
+  border-radius: 20px;
+}
+.dock[data-position='left'] {
+  left: 12px;
+  transform: translateY(-50%);
+}
+.dock[data-position='right'] {
+  right: 12px;
+  transform: translateY(-50%);
+}
+.dock[data-position='left'].is-hidden {
+  transform: translateY(-50%) translateX(calc(-100% - 20px));
+  opacity: 0;
+  pointer-events: none;
+}
+.dock[data-position='right'].is-hidden {
+  transform: translateY(-50%) translateX(calc(100% + 20px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Zone de réveil pour l'auto-masquage --- */
+.dock-hot {
+  position: fixed;
+  z-index: calc(var(--z-dock) - 1);
+}
+.dock-hot[data-position='bottom'] {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+}
+.dock-hot[data-position='left'] {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+}
+.dock-hot[data-position='right'] {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+}
+
+/* --- Éléments --- */
+
+.dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: rgb(var(--text-secondary-rgb));
+  flex-shrink: 0;
+  transition:
+    transform 180ms var(--ease-out-soft),
+    background var(--dur-fast) var(--ease-out-soft),
+    color var(--dur-fast) var(--ease-out-soft);
+}
+
+.dock-item:hover {
+  color: rgb(var(--text-rgb));
+  background: rgb(255 255 255 / 0.1);
+  transform: translateY(-2px);
+}
+
+.dock-item:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.dock-item.running {
+  color: rgb(var(--text-rgb));
+}
+
+.dock-item[data-active] {
+  background: rgb(255 255 255 / 0.07);
+}
+
+.dock-accent {
+  color: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 6%));
+}
+
+.dock-dot {
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+  transition: transform 200ms var(--ease-out-soft);
+}
+
+.dock-item.running .dock-dot {
+  transform: translateX(-50%) scale(1);
+}
+
+/* Dock latéral : le point d'activité passe à gauche. */
+.dock[data-position='left'] .dock-dot,
+.dock[data-position='right'] .dock-dot {
+  bottom: auto;
+  left: auto;
+  top: 50%;
+  right: 2px;
+  transform: translateY(-50%) scale(0);
+}
+.dock[data-position='left'] .dock-item.running .dock-dot,
+.dock[data-position='right'] .dock-item.running .dock-dot {
+  transform: translateY(-50%) scale(1);
+}
+
+.dock-separator {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: rgb(var(--stroke-rgb) / calc(var(--stroke-alpha) * 0.8));
+  flex-shrink: 0;
+}
+
+.dock[data-position='left'] .dock-separator,
+.dock[data-position='right'] .dock-separator {
+  width: 18px;
+  height: 1px;
+  margin: 4px 0;
+}
+
+/* --- Infobulles latérales --- */
+
+.dock[data-position='left'] .dock-item[data-tooltip]::after {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%) translateX(-2px);
+}
+.dock[data-position='left'] .dock-item[data-tooltip]:hover::after {
+  transform: translateY(-50%) translateX(0);
+}
+.dock[data-position='right'] .dock-item[data-tooltip]::after {
+  bottom: auto;
+  top: 50%;
+  left: auto;
+  right: calc(100% + 10px);
+  transform: translateY(-50%) translateX(2px);
+}
+.dock[data-position='right'] .dock-item[data-tooltip]:hover::after {
+  transform: translateY(-50%) translateX(0);
+}
+
+/* --- Dock discret en mode performance --- */
+:root[data-profile='performance'] .dock {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgb(var(--glass-deep-rgb) / 0.94);
+}

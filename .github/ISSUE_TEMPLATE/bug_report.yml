@@ -1,0 +1,55 @@
+name: Signaler un défaut
+description: Comportement inattendu, plantage ou régression
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci ! Avant d'ouvrir un ticket, vérifiez qu'il n'existe pas déjà.
+        Les données personnelles (captures d'écran de votre bureau) sont à anonymiser.
+  - type: textarea
+    id: what
+    attributes:
+      label: Ce qui se passe
+      description: Description factuelle du comportement observé.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ce qui devrait se passer
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes de reproduction
+      placeholder: |
+        1. Ouvrir le module Tâches
+        2. Réduire la fenêtre
+        3. Cliquer sur l'icône du dock
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version de CozyDesk
+      description: Visible dans Paramètres → À propos, ou nom du fichier téléchargé.
+      placeholder: 2.0.0 (portable)
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Windows
+      placeholder: Windows 11 23H2
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Messages d'erreur
+      description: Console de développement (Ctrl+Shift+I) si disponible.
+      render: shell
+    validations:
+      required: false

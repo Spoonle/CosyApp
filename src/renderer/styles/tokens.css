@@ -1,0 +1,96 @@
+/* ============================================================
+   CozyDesk — Tokens de design
+   Toutes les valeurs visuelles dérivent d'ici.
+   ============================================================ */
+
+:root {
+  /* --- Typographie --- */
+  --font-sans: 'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Inter', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12.5px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 21px;
+  --text-2xl: 26px;
+  --text-3xl: 34px;
+  --text-4xl: 46px;
+
+  /* --- Rayons --- */
+  --radius-xs: 9px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-2xl: 32px;
+  --radius-full: 999px;
+
+  /* --- Espacements --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 56px;
+
+  /* --- Courbes & durées --- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 130ms;
+  --dur-med: 230ms;
+  --dur-slow: 420ms;
+
+  /* --- Échelle z --- */
+  --z-wallpaper: 0;
+  --z-dashboard: 10;
+  --z-window-base: 100;
+  --z-dock: 300;
+  --z-snap-preview: 340;
+  --z-modal: 400;
+  --z-palette: 450;
+  --z-toast: 500;
+
+  /* --- Géométrie de l'espace de travail (2.0) --- */
+  --titlebar-h: 34px;      /* barre de titre fine */
+  --dock-reserve: 88px;    /* espace réservé au dock (calculé par le JS) */
+  --dock-side: 76px;       /* dock ancré à gauche/droite */
+  --ws-gap: 14px;          /* espacement de la grille (piloté par les réglages) */
+  --ws-margin: 34px;       /* marge latérale du bureau */
+
+  /* --- Réglages utilisateur (pilotés par settingsStore) --- */
+  --user-blur-mult: 1;    /* 0 – 1.6 : intensité du flou */
+  --user-alpha-mult: 1;   /* 0.6 – 1.4 : intensité de la transparence */
+
+
+  /* --- Profil graphique (piloté par settingsStore) --- */
+  --profile-blur-mult: 1; /* Haute qualité 1 / Basculée .6 / Performance .25 */
+  --profile-alpha-mult: 1;
+
+  /* --- Accent (remplacé par le thème ou l'utilisateur) --- */
+  --accent-h: 248;
+  --accent-s: 82%;
+  --accent-l: 68%;
+  --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+  --accent-soft: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.16);
+  --accent-strong: hsl(var(--accent-h) calc(var(--accent-s) - 8%) calc(var(--accent-l) - 12%));
+  --accent-text: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 18%));
+
+  /* --- Ombres --- */
+  --shadow-sm: 0 2px 10px rgb(0 0 0 / 0.18);
+  --shadow-md: 0 8px 26px rgb(0 0 0 / 0.22);
+  --shadow-lg: 0 20px 60px rgb(0 0 0 / 0.32);
+  --shadow-window:
+    0 2px 6px rgb(0 0 0 / 0.18),
+    0 18px 48px rgb(0 0 0 / 0.34),
+    0 40px 110px rgb(0 0 0 / 0.32);
+  --shadow-dock: 0 10px 34px rgb(0 0 0 / 0.3);
+}

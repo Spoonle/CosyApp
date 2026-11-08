@@ -1,66 +1,100 @@
-# 🌙 CozyDesk
+# CozyDesk
 
-### Your space. Your rhythm. Your focus.
+## ✨ About
 
-**CozyDesk** is a minimalist desktop productivity environment designed to make your workspace feel personal, calm and beautiful.
+**CozyDesk** is a desktop productivity application built to transform your everyday workspace into a personal environment.
 
-Bring together everything you need to stay organized, focused and productive — without cluttering your desktop.
+Instead of switching between multiple applications, CozyDesk brings useful tools together in one clean, customizable interface.
 
-Built around a clean interface, customizable widgets and a beautiful Liquid Glass aesthetic, CozyDesk transforms your desktop into a workspace that adapts to you.
+The idea is simple: create a workspace that feels like yours, helps you stay organized, and makes focusing on your daily tasks a little more enjoyable.
 
-## ✨ Features
+CozyDesk combines productivity, customization, and a minimalist visual experience inspired by modern desktop design.
 
-- **Personalized Dashboard** — Organize your workspace with customizable widgets.
-- **Beautiful Clock** — Keep track of time with an elegant clock and date display.
+## 🚀 Features
+
+- **Customizable Dashboard** — Organize your workspace with widgets.
+- **Clock & Greetings** — Keep track of time with a clean desktop clock.
 - **Pomodoro Timer** — Structure your focus sessions and breaks.
-- **Task Management** — Organize your daily tasks and priorities.
-- **Calendar & Habits** — Keep track of your schedule and routines.
-- **Notes & Journal** — Capture ideas and reflect on your progress.
-- **Music & Ambient Sounds** — Create the perfect atmosphere for working or studying.
-- **Statistics** — Visualize your productivity and progress.
-- **Wallpaper Customization** — Make your workspace truly yours.
-- **Floating Windows** — Access your tools whenever you need them.
+- **Task Management** — Keep track of your daily tasks.
+- **Notes & Journal** — Write down ideas, thoughts, and important information.
+- **Calendar** — Keep your schedule organized.
+- **Habits** — Track your daily routines.
+- **Music & Ambient Sounds** — Create an atmosphere that helps you focus.
+- **Statistics** — Follow your productivity over time.
+- **Custom Wallpapers** — Personalize your workspace.
+- **Floating Windows** — Access tools in a flexible desktop environment.
+- **Liquid Glass Design** — A modern, minimalist interface with a focus on visual comfort.
 
-## 🎨 Designed for Focus
+## 🎨 Design Philosophy
 
-CozyDesk embraces a simple philosophy:
+CozyDesk is built around three main ideas:
 
-**Less clutter. More space. Better focus.**
+- **Minimalism:** Keep the interface clean and avoid unnecessary visual clutter.
+- **Personalization:** Let users organize their workspace around their own preferences.
+- **Comfort:** Create an environment that feels pleasant to use every day.
 
-With its translucent surfaces, subtle animations and customizable workspace, every element is designed to feel natural and unobtrusive.
+The goal isn't to add as many features as possible, but to make useful features work together naturally.
 
-Your desktop should work around you, not the other way around.
+## 💡 Inspiration & Credits
 
-## 📥 Download
+A special thank you to the team behind **[CozySpace](https://cozyspace.app/)**.
 
-**Latest Release: CozyDesk 2.0.0**
+CozySpace was an important source of inspiration during the development of CozyDesk.
 
-[**Download CozyDesk for Windows →**](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)
+I was particularly inspired by:
 
-Choose your version:
+- The concept of creating a personal and welcoming digital workspace.
+- The minimalist visual direction and thoughtful use of space.
+- The way different elements come together to create a cohesive desktop experience.
+- The attention to detail and focus on making everyday computer use more enjoyable.
 
-- `CozyDesk-2.0-Final-Portable.exe` — Run without installation.
-- `CozyDesk-2.0-Final-Setup.exe` — Standard Windows installation.
+Discovering CozySpace encouraged me to experiment with my own interpretation of this idea and eventually build CozyDesk.
+
+While CozySpace influenced the project's concept and visual direction, CozyDesk has its own implementation, architecture, features, and identity.
+
+I believe it's important to acknowledge the projects and developers that inspire us. Thank you to the CozySpace team for creating something that motivated me to build something of my own!
+
+🌐 **Check out CozySpace:** https://cozyspace.app/
 
 ## 🛠️ Built With
 
-- Electron
-- React
-- TypeScript
-- Vite
-- Zustand
-- Dexie / IndexedDB
-- Lucide Icons
+CozyDesk is built using:
 
-## 💻 Platform
+- **Electron** — Desktop application framework.
+- **React** — User interface.
+- **TypeScript** — Type-safe development.
+- **Vite** — Development and build tooling.
+- **Zustand** — State management.
+- **Dexie / IndexedDB** — Local data persistence.
+- **Lucide** — Icons.
 
-Currently available for **Windows**.
+## 📥 Download
 
-## 🚀 Version
+The latest release is **CozyDesk 2.0.0**.
 
-**CozyDesk 2.0.0 — Final Release**
+👉 **[Download CozyDesk 2.0.0](https://github.com/Spoonle/CosyApp/releases/tag/v2.0.0)**
 
----
+Available versions:
 
-*Made with care, for a calmer and more productive desktop.*
+| File | Description |
+|---|---|
+| `CozyDesk-2.0-Final-Setup.exe` | Standard Windows installer |
+| `CozyDesk-2.0-Final-Portable.exe` | Portable version, no installation required |
+| `CozyDesk-2.0-Final-Source.zip` | Project source code |
 
+## 💻 Development
+
+Want to explore the source code or contribute?
+
+### Requirements
+
+- Node.js
+- npm
+- Git
+
+### Installation
+
+```bash
+git clone https://github.com/Spoonle/CosyApp.git
+cd CosyApp
+npm install

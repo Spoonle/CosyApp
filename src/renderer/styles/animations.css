@@ -1,0 +1,204 @@
+/* ============================================================
+   CozyDesk — Animations
+   Respect de prefers-reduced-motion et du réglage utilisateur.
+   ============================================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(6px);
+  }
+}
+
+@keyframes window-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes window-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(14px);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes aurora-drift-1 {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(9vw, 7vh) scale(1.18);
+  }
+}
+@keyframes aurora-drift-2 {
+  from {
+    transform: translate(0, 0) scale(1.1);
+  }
+  to {
+    transform: translate(-8vw, -6vh) scale(0.94);
+  }
+}
+@keyframes aurora-drift-3 {
+  from {
+    transform: translate(0, 0) scale(0.9);
+  }
+  to {
+    transform: translate(-6vw, 8vh) scale(1.2);
+  }
+}
+
+@keyframes dock-bounce {
+  0% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-14px);
+  }
+  60% {
+    transform: translateY(2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.anim-fade {
+  animation: fade-in var(--dur-med) var(--ease-out-soft) both;
+}
+.anim-fade-up {
+  animation: fade-up var(--dur-slow) var(--ease-out-soft) both;
+}
+.anim-pop {
+  animation: pop-in var(--dur-med) var(--ease-out-soft) both;
+}
+.anim-slide-right {
+  animation: slide-in-right var(--dur-med) var(--ease-out-soft) both;
+}
+.anim-toast {
+  animation: toast-in 260ms var(--ease-spring) both;
+}
+
+/* --- Réduction des animations (réglage utilisateur + préférence système) --- */
+:root[data-reduced-motion='true'] *,
+:root[data-reduced-motion='true'] *::before,
+:root[data-reduced-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Profil performance : blobs d'ambiance figés */
+:root[data-profile='performance'] .ambient-blob {
+  animation: none;
+}
+
+/* --- Intensité d'animation « réduite » (réglage 2.0) --- */
+:root[data-motion='reduced'] .floating-window,
+:root[data-motion='reduced'] .toast,
+:root[data-motion='reduced'] .menu,
+:root[data-motion='reduced'] .modal-panel,
+:root[data-motion='reduced'] .palette-panel {
+  animation-duration: 120ms !important;
+}

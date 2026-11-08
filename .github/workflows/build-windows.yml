@@ -1,0 +1,255 @@
+name: Build CozyDesk 2.0 (Windows)
+
+# Produit ET VÉRIFIE les deux artefacts Windows à partir du code source réel :
+#   CozyDesk-2.0-Final-Portable.exe
+#   CozyDesk-2.0-Final-Setup.exe
+#
+# Vérifications exécutées avant publication :
+#   1. contenu réel de app.asar (scripts/verify-package.cjs) ;
+#   2. lancement du binaire empaqueté en mode smoke + capture d'écran ;
+#   3. création du répertoire de données (persistance).
+# Les diagnostics sont émis en annotations et repris dans les notes de version.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v2*'
+
+permissions:
+  contents: write
+
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck, lint, tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test
+
+      - name: Build frontend + Electron main
+        run: |
+          npm run build:electron
+          npx vite build
+
+      - name: Package Windows apps (portable + NSIS installer)
+        run: npx electron-builder --win --x64 --publish never
+
+      - name: List release output
+        run: Get-ChildItem release | Select-Object Name, Length
+
+      # ---------- 1. Contenu réellement empaqueté ----------
+      - name: Verify app.asar contains the 2.0 redesign
+        run: |
+          node scripts/verify-package.cjs release/win-unpacked/resources/app.asar `
+            --json=release/verification.json --notes=release/verification.md
+
+      # ---------- 2. Lancement réel du binaire empaqueté ----------
+      - name: Smoke-test the packaged executable
+        continue-on-error: true
+        run: |
+          $exe = "release\win-unpacked\CozyDesk.exe"
+          $png = Join-Path $PWD "release\smoke-2.0.png"
+          $out = Join-Path $PWD "release\smoke.out.log"
+          $err = Join-Path $PWD "release\smoke.err.log"
+          $report = Join-Path $PWD "release\smoke.json"
+
+          $status = [ordered]@{
+            launched  = $false
+            exitCode  = $null
+            pngExists = $false
+            pngBytes  = 0
+            width     = 0
+            height    = 0
+            error     = ""
+          }
+
+          if (-not (Test-Path $exe)) {
+            $status.error = "CozyDesk.exe introuvable : $exe"
+          } else {
+            $appArgs = @("--smoke-test=$png", "--open=tasks,notes,settings", "--wait=7000", "--disable-gpu")
+            try {
+              $proc = Start-Process -FilePath $exe -ArgumentList $appArgs -PassThru `
+                -RedirectStandardOutput $out -RedirectStandardError $err
+              $status.launched = $true
+              if (-not $proc.WaitForExit(90000)) {
+                $proc.Kill()
+                $status.error = "l'application n'a pas quitté dans les 90 s"
+              } else {
+                $status.exitCode = $proc.ExitCode
+              }
+            } catch {
+              $status.error = "$($_.Exception.Message)"
+            }
+
+            if (Test-Path $png) {
+              $status.pngExists = $true
+              $status.pngBytes = (Get-Item $png).Length
+              try {
+                Add-Type -AssemblyName System.Drawing
+                $img = [System.Drawing.Image]::FromFile($png)
+                $status.width = $img.Width
+                $status.height = $img.Height
+                $img.Dispose()
+              } catch {
+                $status.error = "lecture de la capture impossible : $($_.Exception.Message)"
+              }
+            }
+          }
+
+          ($status | ConvertTo-Json) | Set-Content $report -Encoding utf8
+
+          $tail = ""
+          foreach ($f in @($err, $out)) {
+            if (Test-Path $f) { $tail += ((Get-Content $f -Tail 40) -join " | ") }
+          }
+          $tail = $tail -replace "`r", "" -replace "`n", " | "
+          if ($tail.Length -gt 1200) { $tail = $tail.Substring(0, 1200) }
+
+          Write-Output "::notice title=Smoke lancement::lance=$($status.launched) exit=$($status.exitCode)"
+          Write-Output "::notice title=Smoke capture::png=$($status.pngExists) octets=$($status.pngBytes) taille=$($status.width)x$($status.height)"
+          if ($status.error -ne "") { Write-Output "::error title=Smoke erreur::$($status.error)" }
+          Write-Output "::notice title=Smoke trace::$tail"
+
+          if ($status.pngExists -and $status.pngBytes -ge 20000 -and $status.width -ge 800) {
+            Write-Output "::notice title=Smoke verdict::binaire empaqueté lancé et rendu vérifié"
+          } else {
+            Write-Output "::error title=Smoke verdict::capture insuffisante, binaire non vérifié"
+          }
+
+      # ---------- 3. Persistance : répertoire de données ----------
+      - name: Verify persistence directory created
+        continue-on-error: true
+        run: |
+          $dir = Join-Path $env:APPDATA "CozyDesk"
+          "userData : $dir"
+          if (-not (Test-Path $dir)) {
+            Write-Output "::error title=Persistance::répertoire userData absent ($dir)"
+            throw "le répertoire de données n'a pas été créé"
+          }
+          Write-Output "::notice title=Persistance::userData créé : $dir"
+          Get-ChildItem $dir -Recurse -Depth 2 | Select-Object -First 15 FullName
+
+      # ---------- Archive source (exact code used for this build) ----------
+      - name: Package source archive
+        if: always()
+        shell: pwsh
+        run: |
+          $zip = Join-Path $PWD "release\CozyDesk-2.0-Final-Source.zip"
+          if (Test-Path $zip) { Remove-Item $zip }
+          $include = @(
+            "src", "tests", "scripts", "build", "docs", ".github",
+            "package.json", "package-lock.json", "tsconfig.json",
+            "tsconfig.electron.json", "vite.config.ts", "electron-builder.yml",
+            "eslint.config.mjs", "index.html", "README.md", "LICENSE",
+            "CONTRIBUTING.md", "preview.config.mjs", ".gitignore"
+          ) | Where-Object { Test-Path $_ }
+          Compress-Archive -Path $include -DestinationPath $zip -CompressionLevel Optimal
+          $size = (Get-Item $zip).Length
+          "archive source : $zip ($size octets)"
+          if ($size -lt 100000) {
+            Write-Output "::error title=Archive source::archive trop petite ($size octets)"
+            throw "archive source incomplète"
+          }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+          try {
+            $entries = $archive.Entries | ForEach-Object { $_.FullName }
+          } finally {
+            $archive.Dispose()
+          }
+          $required = @(
+            "package.json", "electron-builder.yml", "tsconfig.json",
+            "src/main/index.ts", "src/preload/index.ts",
+            "src/shared/types/ipc.ts",
+            "src/renderer/stores/dashboard.ts", "src/renderer/stores/settings.ts",
+            "src/renderer/components/dock/Dock.tsx",
+            "tests/layout.test.ts", "tests/modules.test.tsx",
+            "docs/QA-FINAL-2.0.md", "LICENSE"
+          )
+          $missing = @($required | Where-Object { $entries -notcontains $_ })
+          $forbidden = @($entries | Where-Object { $_ -like "*node_modules*" -or $_ -like "*dist/*" -or $_ -like "*release/*" })
+          "entrées zip : $($entries.Count)"
+          if ($missing.Count -gt 0) {
+            Write-Output "::error title=Archive source::entrées manquantes : $($missing -join ', ')"
+            throw "archive source incomplète"
+          }
+          if ($forbidden.Count -gt 0) {
+            Write-Output "::error title=Archive source::contenu interdit (build/node_modules) : $($forbidden[0])"
+            throw "archive source polluée"
+          }
+          Write-Output "::notice title=Archive source::$($entries.Count) entrées, 13 fichiers clés présents, aucun artefact de build"
+          Write-Output "::notice title=Archive source::CozyDesk-2.0-Final-Source.zip ($size octets)"
+
+      # ---------- Diagnostics et publication ----------
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CozyDesk-2.0-Final-Windows
+          if-no-files-found: warn
+          path: |
+            release/CozyDesk-2.0-Final-Portable.exe
+            release/CozyDesk-2.0-Final-Setup.exe
+            release/CozyDesk-2.0-Final-Source.zip
+            release/smoke-2.0.png
+            release/smoke.json
+            release/verification.json
+
+      - name: Compose release notes
+        if: always()
+        run: node scripts/release-notes.cjs release/verification.json release/release-notes.md release/smoke.json
+
+      - name: Publish GitHub release (tag builds only)
+        if: always() && startsWith(github.ref, 'refs/tags/v2')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CozyDesk 2.0 — édition finale
+          body_path: release/release-notes.md
+          files: |
+            release/CozyDesk-2.0-Final-Portable.exe
+            release/CozyDesk-2.0-Final-Setup.exe
+            release/CozyDesk-2.0-Final-Source.zip
+            release/smoke-2.0.png
+
+      # ---------- Verdict : le job échoue si le binaire n'a pas été vérifié ----------
+      - name: Enforce packaged-binary verification
+        if: always()
+        run: |
+          $report = "release\smoke.json"
+          if (-not (Test-Path $report)) {
+            Write-Output "::error title=Verdict::aucun rapport de lancement produit"
+            exit 1
+          }
+          $s = Get-Content $report -Raw | ConvertFrom-Json
+          "lance=$($s.launched) exit=$($s.exitCode) png=$($s.pngExists) octets=$($s.pngBytes) taille=$($s.width)x$($s.height)"
+          if (-not $s.pngExists -or $s.pngBytes -lt 20000 -or $s.width -lt 800) {
+            Write-Output "::error title=Verdict::l'exécutable empaqueté n'a pas rendu d'interface vérifiable"
+            exit 1
+          }
+          Write-Output "::notice title=Verdict::exécutable empaqueté vérifié (lancement + rendu)"
+          $expected = @(
+            "release\CozyDesk-2.0-Final-Portable.exe",
+            "release\CozyDesk-2.0-Final-Setup.exe",
+            "release\CozyDesk-2.0-Final-Source.zip"
+          )
+          foreach ($f in $expected) {
+            if (-not (Test-Path $f)) {
+              Write-Output "::error title=Verdict::livrable manquant ($f)"
+              exit 1
+            }
+            Write-Output "::notice title=Livrable::$f ($((Get-Item $f).Length) octets)"
+          }

@@ -1,0 +1,43 @@
+appId: app.cozydesk.desktop
+productName: CozyDesk
+copyright: CozyDesk 2026
+
+directories:
+  output: release
+  buildResources: build
+
+# L'application est entièrement bundlée par Vite (dist/) et esbuild (dist-electron/) :
+# aucun node_module applicatif n'est embarqué dans le paquet final.
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+  - "!**/*.map"
+
+compression: normal
+
+win:
+  icon: build/icon.ico
+  # CozyDesk 2.0 : artefacts distincts de la version 1.0
+  # (l'ancien exécutable reste intact, rien n'est écrasé).
+  # L'incrustation de l'icône dans le .exe s'effectue nativement sous Windows.
+  # Pour compiler sous Linux sans wine : `npm run package:nosign`.
+  signAndEditExecutable: true
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: CozyDesk 2.0
+  artifactName: CozyDesk-2.0-Final-Setup.${ext}
+
+portable:
+  artifactName: CozyDesk-2.0-Final-Portable.${ext}

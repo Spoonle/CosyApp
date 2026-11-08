@@ -1,0 +1,15 @@
+/* Feuille de style racine — ordre important. */
+@import './tokens.css';
+@import './themes.css';
+@import './base.css';
+@import './animations.css';
+@import './glass.css';
+@import './components.css';
+@import './shell.css';
+@import './windows.css';
+@import './dock.css';
+@import './widgets.css';
+/* workspace.css en dernier des couches de composition : il affine les
+   composants partagés (toasts, contrôles posés sur le fond d'écran). */
+@import './workspace.css';
+@import './modules.css';
