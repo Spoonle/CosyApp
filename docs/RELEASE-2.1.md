@@ -200,6 +200,26 @@ qu’elle correspond aux noms d’artefacts d’`electron-builder.yml`.
 
 Comparaison avec 2.0.0 : **162 → 174 tests**, tous verts.
 
+### Chaîne CI Windows (run `43233018023`, tag `v2.1.0`)
+
+Toutes les étapes ont réussi, y compris celles qui ne peuvent pas tourner sous
+Linux :
+
+| Étape CI | Résultat |
+|---|---|
+| Typecheck, lint, tests (Windows) | ✅ |
+| Build frontend + Electron main | ✅ |
+| Empaquetage Windows (NSIS + portable) | ✅ |
+| Vérification du contenu de `app.asar` | ✅ |
+| **Lancement réel de l’exe empaqueté** | ✅ capture 1024×720, 868 035 octets |
+| Création du répertoire de données | ✅ `%APPDATA%\CozyDesk` |
+| Archive source (14 fichiers clés) | ✅ 152 entrées, aucun artefact de build |
+| Publication de la release | ✅ |
+
+> Le premier run du tag `v2.1.0` avait échoué sur la régression `liveQuery`
+> décrite au § 3. Le tag a été reposé sur le commit corrigé, et le run final est
+> entièrement vert.
+
 ---
 
 ## 9. Mise à jour depuis 2.0.0
