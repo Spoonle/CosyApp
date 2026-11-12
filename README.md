@@ -54,8 +54,10 @@ invisibles.
   les pistes historiques, en respectant `createdAt`.
 - **Aucune donnée supprimée, aucune base réinitialisée.** La migration ne touche
   ni aux index, ni aux playlists, ni aux pochettes.
-- La requête de bibliothèque est **auto-réparatrice** : une piste dépourvue
-  d’`addedAt`, insérée par n’importe quel chemin, est réparée avant lecture.
+- La réparation est **séparée de la lecture** : `loadLibrary()` reste une
+  lecture pure (obligatoire dans un `liveQuery`, sinon Dexie lève
+  `ReadOnlyError`), et `repairLibrary()` effectue l’écriture à l’ouverture de la
+  base ainsi qu’au montage du module.
 - Les sauvegardes exportées par la 2.0 (sans `addedAt`) restent restaurables.
 - MP3, WAV, FLAC, OGG et M4A vérifiés de bout en bout.
 - Un échec de lecture des métadonnées n’empêche plus jamais l’import : repli sur
@@ -67,7 +69,7 @@ Détail complet, cause racine et résultats de tests : **[`docs/RELEASE-2.1.md`]
 
 | Version | Date | Points marquants |
 |---|---|---|
-| **2.1.0** | 2026-11-12 | Correction de l’import musical (`addedAt`), migration Dexie v2 non destructive, 173 tests |
+| **2.1.0** | 2026-11-12 | Correction de l’import musical (`addedAt`), migration Dexie v2 non destructive, 174 tests |
 | 2.0.0 | 2026-11-05 | Refonte visuelle complète, tableau de bord, fenêtres flottantes |
 
 ---
@@ -163,7 +165,7 @@ npm run preview:web  # build de production servi sur http://localhost:4173
 ```bash
 npm run typecheck   # TypeScript, rendu + processus principal
 npm run lint        # ESLint 9
-npm run test        # Vitest (17 fichiers, 173 tests)
+npm run test        # Vitest (17 fichiers, 174 tests)
 npm run build       # typecheck + lint + tests + build Electron + build Vite
 ```
 
