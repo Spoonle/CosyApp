@@ -1,8 +1,8 @@
-name: Build CozyDesk 2.0 (Windows)
+name: Build CozyDesk 2.1 (Windows)
 
 # Produit ET VÉRIFIE les deux artefacts Windows à partir du code source réel :
-#   CozyDesk-2.0-Final-Portable.exe
-#   CozyDesk-2.0-Final-Setup.exe
+#   CozyDesk-2.1-Final-Portable.exe
+#   CozyDesk-2.1-Final-Setup.exe
 #
 # Vérifications exécutées avant publication :
 #   1. contenu réel de app.asar (scripts/verify-package.cjs) ;
@@ -52,7 +52,7 @@ jobs:
         run: Get-ChildItem release | Select-Object Name, Length
 
       # ---------- 1. Contenu réellement empaqueté ----------
-      - name: Verify app.asar contains the 2.0 redesign
+      - name: Verify app.asar contains the 2.1 build
         run: |
           node scripts/verify-package.cjs release/win-unpacked/resources/app.asar `
             --json=release/verification.json --notes=release/verification.md
@@ -62,7 +62,7 @@ jobs:
         continue-on-error: true
         run: |
           $exe = "release\win-unpacked\CozyDesk.exe"
-          $png = Join-Path $PWD "release\smoke-2.0.png"
+          $png = Join-Path $PWD "release\smoke-2.1.png"
           $out = Join-Path $PWD "release\smoke.out.log"
           $err = Join-Path $PWD "release\smoke.err.log"
           $report = Join-Path $PWD "release\smoke.json"
@@ -148,7 +148,7 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $zip = Join-Path $PWD "release\CozyDesk-2.0-Final-Source.zip"
+          $zip = Join-Path $PWD "release\CozyDesk-2.1-Final-Source.zip"
           if (Test-Path $zip) { Remove-Item $zip }
           $include = @(
             "src", "tests", "scripts", "build", "docs", ".github",
@@ -178,7 +178,8 @@ jobs:
             "src/renderer/stores/dashboard.ts", "src/renderer/stores/settings.ts",
             "src/renderer/components/dock/Dock.tsx",
             "tests/layout.test.ts", "tests/modules.test.tsx",
-            "docs/QA-FINAL-2.0.md", "LICENSE"
+            "docs/QA-FINAL-2.0.md", "docs/RELEASE-2.1.md",
+            "tests/musicImport.test.ts", "LICENSE"
           )
           $missing = @($required | Where-Object { $entries -notcontains $_ })
           $forbidden = @($entries | Where-Object { $_ -like "*node_modules*" -or $_ -like "*dist/*" -or $_ -like "*release/*" })
@@ -191,21 +192,21 @@ jobs:
             Write-Output "::error title=Archive source::contenu interdit (build/node_modules) : $($forbidden[0])"
             throw "archive source polluée"
           }
-          Write-Output "::notice title=Archive source::$($entries.Count) entrées, 13 fichiers clés présents, aucun artefact de build"
-          Write-Output "::notice title=Archive source::CozyDesk-2.0-Final-Source.zip ($size octets)"
+          Write-Output "::notice title=Archive source::$($entries.Count) entrées, 14 fichiers clés présents, aucun artefact de build"
+          Write-Output "::notice title=Archive source::CozyDesk-2.1-Final-Source.zip ($size octets)"
 
       # ---------- Diagnostics et publication ----------
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CozyDesk-2.0-Final-Windows
+          name: CozyDesk-2.1-Final-Windows
           if-no-files-found: warn
           path: |
-            release/CozyDesk-2.0-Final-Portable.exe
-            release/CozyDesk-2.0-Final-Setup.exe
-            release/CozyDesk-2.0-Final-Source.zip
-            release/smoke-2.0.png
+            release/CozyDesk-2.1-Final-Portable.exe
+            release/CozyDesk-2.1-Final-Setup.exe
+            release/CozyDesk-2.1-Final-Source.zip
+            release/smoke-2.1.png
             release/smoke.json
             release/verification.json
 
@@ -214,16 +215,16 @@ jobs:
         run: node scripts/release-notes.cjs release/verification.json release/release-notes.md release/smoke.json
 
       - name: Publish GitHub release (tag builds only)
-        if: always() && startsWith(github.ref, 'refs/tags/v2')
+        if: always() && startsWith(github.ref, 'refs/tags/v2.1')
         uses: softprops/action-gh-release@v2
         with:
-          name: CozyDesk 2.0 — édition finale
+          name: CozyDesk 2.1 — correction de l’import musical
           body_path: release/release-notes.md
           files: |
-            release/CozyDesk-2.0-Final-Portable.exe
-            release/CozyDesk-2.0-Final-Setup.exe
-            release/CozyDesk-2.0-Final-Source.zip
-            release/smoke-2.0.png
+            release/CozyDesk-2.1-Final-Portable.exe
+            release/CozyDesk-2.1-Final-Setup.exe
+            release/CozyDesk-2.1-Final-Source.zip
+            release/smoke-2.1.png
 
       # ---------- Verdict : le job échoue si le binaire n'a pas été vérifié ----------
       - name: Enforce packaged-binary verification
@@ -242,9 +243,9 @@ jobs:
           }
           Write-Output "::notice title=Verdict::exécutable empaqueté vérifié (lancement + rendu)"
           $expected = @(
-            "release\CozyDesk-2.0-Final-Portable.exe",
-            "release\CozyDesk-2.0-Final-Setup.exe",
-            "release\CozyDesk-2.0-Final-Source.zip"
+            "release\CozyDesk-2.1-Final-Portable.exe",
+            "release\CozyDesk-2.1-Final-Setup.exe",
+            "release\CozyDesk-2.1-Final-Source.zip"
           )
           foreach ($f in $expected) {
             if (-not (Test-Path $f)) {

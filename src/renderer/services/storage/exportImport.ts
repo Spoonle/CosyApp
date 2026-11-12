@@ -3,7 +3,7 @@
  * L'import valide chaque enregistrement, crée une sauvegarde préalable
  * et fusionne (upsert) sans jamais supprimer l'existant.
  */
-import { DB_SCHEMA_VERSION, db } from './db';
+import { backfillAddedAt, DB_SCHEMA_VERSION, db } from './db';
 import { writeBackup } from './backup';
 import type { BaseRec } from '@/types/domain';
 
@@ -88,10 +88,10 @@ export async function importBundle(bundle: ExportBundle): Promise<ImportReport> 
     for (const row of rows) {
       if (isBaseRecord(row)) {
         if (name === 'tracks') {
-          const t = row as unknown as Record<string, unknown>;
-          if (typeof t.addedAt !== 'number') {
-            t.addedAt = typeof t.createdAt === 'number' ? t.createdAt : Date.now();
-          }
+          // Une sauvegarde exportée par une version antérieure ne contient pas
+          // `addedAt` : sans normalisation, la piste restaurée resterait
+          // absente de la bibliothèque (index Dexie incomplet).
+          backfillAddedAt(row as unknown as Record<string, unknown>);
         }
         valid.push(row as BaseRec);
         ok++;

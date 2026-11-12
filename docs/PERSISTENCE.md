@@ -9,7 +9,11 @@ CozyDesk stocke tout localement, dans deux espaces complémentaires.
 
 ## 1. Schéma IndexedDB
 
-Base `CozyDeskDB`, **version 1**, 16 tables :
+Base `CozyDeskDB`, **version 2**, 16 tables.
+
+La version 1 est le schéma d’origine (CozyDesk 2.0). La version 2 n’ajoute ni ne
+retire **aucun index** : elle ne contient qu’une migration de données, décrite
+au § 1.1.
 
 ```text
 meta              key
@@ -31,8 +35,40 @@ backups           key, createdAt
 ```
 
 Règle : on **ajoute** des index avec `db.version(n + 1).stores({...})`, on ne
-modifie ni ne supprime un index existant. Toute montée de version déclenche une
-sauvegarde `pré-migration` avant ouverture.
+modifie ni ne supprime un index existant. `upgrade()` ne doit jamais supprimer
+d’enregistrement — uniquement compléter des champs manquants en place.
+
+### 1.1 Migration v1 → v2 — `addedAt` sur les pistes
+
+**Problème corrigé.** `tracks` est indexée par `addedAt`, mais l’import de la 2.0
+n’écrivait pas ce champ. Or Dexie **n’itère pas** les enregistrements dont la
+clé indexée est absente : `db.tracks.orderBy('addedAt')` ignorait ces pistes.
+Elles étaient stockées (accessibles par `get(id)`) mais invisibles dans la
+bibliothèque.
+
+**Correction.** `backfillAddedAt()` (`services/storage/db.ts`) est la règle
+unique, idempotente :
+
+1. `addedAt` numérique et fini → rien n’est écrit ;
+2. sinon `createdAt` ;
+3. sinon `updatedAt` ;
+4. sinon la date courante.
+
+Elle est appliquée par trois chemins complémentaires :
+
+| Chemin | Quand |
+|---|---|
+| `db.version(2).upgrade()` | une seule fois, à la montée de schéma |
+| `migrateLegacyTracks()` | à chaque `openDatabase()` (filet de sécurité) |
+| `loadLibrary()` | avant chaque lecture de la bibliothèque (auto-réparation) |
+
+Plus la normalisation à la restauration de sauvegarde
+(`importBundle()`, `services/storage/exportImport.ts`).
+
+Aucune de ces étapes ne supprime d’enregistrement : ce sont des `modify()` en
+place. Les playlists, les pochettes et les autres champs sont préservés.
+Couvert par `tests/musicImport.test.ts` (dont une migration réelle sur
+`CozyDeskDB`).
 
 ## 2. Clés de préférences
 

@@ -10,6 +10,12 @@ import os from 'node:os';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
+/** Version réelle du dépôt : le vérificateur ne doit pas figer une constante. */
+const APP_VERSION: string = (
+  JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8')) as {
+    version: string;
+  }
+).version;
 const asar = require('@electron/asar') as {
   createPackage: (src: string, dest: string) => Promise<void>;
 };
@@ -34,7 +40,7 @@ function run(asarPath: string): { code: number; output: string } {
 }
 
 const V2_FILES = {
-  'package.json': JSON.stringify({ name: 'cozydesk', version: '2.0.0' }),
+  'package.json': JSON.stringify({ name: 'cozydesk', version: APP_VERSION }),
   'dist/assets/index.css':
     '.hero-clock{}.floating-window{}.widget[data-appearance=transparent]{}',
   'dist/assets/index.js': 'workspace-add library-panel launcher-grid Bureau "Bon après-midi"'
@@ -56,8 +62,26 @@ describe('vérificateur de paquet', () => {
     });
     const { code, output } = run(stale);
     expect(code).toBe(1);
-    expect(output).toContain('FAIL version 2.0.0 déclarée');
+    expect(output).toContain('FAIL version');
     expect(output).toContain('FAIL horloge principale (CSS)');
+  });
+
+  it('refuse un paquet dont la version ne correspond pas à package.json', async () => {
+    const stale = await makePackage({
+      'package.json': JSON.stringify({ name: 'cozydesk', version: '2.0.0' }),
+      'dist/assets/index.css':
+        '.hero-clock{}.floating-window{}.widget[data-appearance=transparent]{}',
+      'dist/assets/index.js': 'workspace-add library-panel launcher-grid Bureau "Bon après-midi"'
+    });
+    const { code, output } = run(stale);
+    expect(code).toBe(1);
+    expect(output).toContain(`FAIL version ${APP_VERSION} déclarée`);
+  });
+
+  it('la version vérifiée est celle de package.json (pas une constante figée)', () => {
+    expect(APP_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+    const builder = fs.readFileSync(path.resolve(__dirname, '../electron-builder.yml'), 'utf8');
+    expect(builder).toContain(`CozyDesk-${APP_VERSION.split('.').slice(0, 2).join('.')}-Final-Setup`);
   });
 
   it('refuse un asar absent', () => {

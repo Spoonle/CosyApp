@@ -8,7 +8,16 @@
  * - La préservation des bibliothèques et des playlists existantes.
  */
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { db, migrateLegacyTracks, nowTs } from '@/services/storage/db';
+import Dexie from 'dexie';
+import {
+  backfillAddedAt,
+  CozyDeskDB,
+  db,
+  loadLibrary,
+  migrateLegacyTracks,
+  nowTs,
+  SCHEMA_V1
+} from '@/services/storage/db';
 import { createTrackFromGrant } from '@/modules/music/MusicModule';
 import { importBundle, validateBundle } from '@/services/storage/exportImport';
 import type { Playlist, Track } from '@/types/domain';
@@ -312,5 +321,172 @@ describe('Importation de sauvegarde (exportImport) avec pistes historiques', () 
     expect(query).toHaveLength(1);
     expect(query[0].id).toBe('legacy-export-1');
     expect(query[0].addedAt).toBe(ts);
+  });
+});
+
+describe('Migration réelle : classe CozyDeskDB v1 -> v2', () => {
+  it('migre une vraie base v1 (schéma SCHEMA_V1) et conserve toutes les tables', async () => {
+    const name = `cozydesk-migration-${Date.now()}`;
+    const ts = 1670000000000;
+
+    // 1. Base créée par CozyDesk 2.0 : version 1, piste sans addedAt.
+    const legacy = new Dexie(name);
+    legacy.version(1).stores({ ...SCHEMA_V1 });
+    await legacy.open();
+    await legacy.table('tracks').bulkPut([
+      {
+        id: 'real-v1-1',
+        createdAt: ts,
+        updatedAt: ts,
+        path: '/music/a.mp3',
+        title: 'Real V1 A',
+        artist: 'Artist',
+        ext: 'mp3',
+        size: 111
+      },
+      {
+        id: 'real-v1-2',
+        createdAt: ts + 1000,
+        updatedAt: ts + 1000,
+        path: '/music/b.wav',
+        title: 'Real V1 B',
+        ext: 'wav',
+        size: 222
+      }
+    ]);
+    await legacy.table('playlists').put({
+      id: 'real-pl',
+      createdAt: ts,
+      updatedAt: ts,
+      name: 'Historique',
+      trackIds: ['real-v1-1', 'real-v1-2']
+    });
+    await legacy.table('tasks').put({
+      id: 'task-1',
+      createdAt: ts,
+      updatedAt: ts,
+      title: 'Tâche historique',
+      order: 0,
+      status: 'todo'
+    });
+    expect(await legacy.table('tracks').orderBy('addedAt').count()).toBe(0);
+    legacy.close();
+
+    // 2. Ouverture par la vraie classe applicative -> upgrade v2 automatique.
+    const upgraded = new CozyDeskDB(name);
+    await upgraded.open();
+    expect(upgraded.verno).toBe(2);
+
+    const tracks = await upgraded.tracks.orderBy('addedAt').reverse().toArray();
+    expect(tracks.map((t) => t.id)).toEqual(['real-v1-2', 'real-v1-1']);
+    expect(tracks[0].addedAt).toBe(ts + 1000);
+    expect(tracks[1].addedAt).toBe(ts);
+
+    // Non destructif : aucune autre table ni aucun autre champ n'est perdu.
+    expect((await upgraded.playlists.get('real-pl'))?.trackIds).toEqual(['real-v1-1', 'real-v1-2']);
+    expect((await upgraded.tasks.get('task-1'))?.title).toBe('Tâche historique');
+    expect((await upgraded.tracks.get('real-v1-1'))?.path).toBe('/music/a.mp3');
+    upgraded.close();
+  });
+
+  it('la migration v2 est idempotente (réouverture sans modification)', async () => {
+    const name = `cozydesk-idempotent-${Date.now()}`;
+    const ts = 1660000000000;
+
+    const v1 = new Dexie(name);
+    v1.version(1).stores({ ...SCHEMA_V1 });
+    await v1.open();
+    await v1.table('tracks').put({ id: 'idem', createdAt: ts, updatedAt: ts, title: 'Idem', ext: 'ogg', size: 1 });
+    v1.close();
+
+    const first = new CozyDeskDB(name);
+    await first.open();
+    const afterFirst = await first.tracks.get('idem');
+    first.close();
+
+    const second = new CozyDeskDB(name);
+    await second.open();
+    const afterSecond = await second.tracks.get('idem');
+    // Aucune piste n'est à réparer à la réouverture.
+    const repaired = await migrateLegacyTracks(second);
+    second.close();
+
+    expect(afterFirst?.addedAt).toBe(ts);
+    expect(afterSecond?.addedAt).toBe(ts);
+    expect(repaired).toBe(0);
+  });
+});
+
+describe('Requête auto-réparatrice de la bibliothèque', () => {
+  it('loadLibrary() répare puis retourne même une piste insérée sans addedAt', async () => {
+    const ts = 1650000000000;
+    await db.tracks.put({
+      id: 'sneaky',
+      createdAt: ts,
+      updatedAt: ts,
+      path: '/music/sneaky.m4a',
+      title: 'Sneaky',
+      ext: 'm4a',
+      size: 42
+    } as unknown as Track);
+
+    // Bogue historique : la piste est stockée mais absente de orderBy.
+    expect(await db.tracks.orderBy('addedAt').count()).toBe(0);
+
+    const library = await loadLibrary();
+    expect(library.map((t) => t.id)).toEqual(['sneaky']);
+    expect(library[0].addedAt).toBe(ts);
+    expect(library[0].title).toBe('Sneaky');
+  });
+
+  it('classe correctement un mélange de pistes neuves et historiques', async () => {
+    await db.tracks.bulkPut([
+      { id: 'old', createdAt: 1000, updatedAt: 1000, path: '/m/old.mp3', title: 'Old', ext: 'mp3', size: 1 },
+      {
+        id: 'new',
+        createdAt: 3000,
+        updatedAt: 3000,
+        addedAt: 3000,
+        path: '/m/new.mp3',
+        title: 'New',
+        ext: 'mp3',
+        size: 1
+      }
+    ] as unknown as Track[]);
+
+    const library = await loadLibrary();
+    expect(library.map((t) => t.id)).toEqual(['new', 'old']);
+  });
+});
+
+describe('backfillAddedAt : choix de l’horodatage de repli', () => {
+  it('privilégie createdAt', () => {
+    const rec: Record<string, unknown> = { createdAt: 1000, updatedAt: 2000 };
+    expect(backfillAddedAt(rec)).toBe(true);
+    expect(rec.addedAt).toBe(1000);
+  });
+
+  it('utilise updatedAt si createdAt est invalide', () => {
+    const rec: Record<string, unknown> = { createdAt: 'pas un nombre', updatedAt: 2000 };
+    backfillAddedAt(rec);
+    expect(rec.addedAt).toBe(2000);
+  });
+
+  it('retombe sur la date fournie quand aucune date exploitable', () => {
+    const rec: Record<string, unknown> = {};
+    backfillAddedAt(rec, 424242);
+    expect(rec.addedAt).toBe(424242);
+  });
+
+  it('ne touche jamais un addedAt existant', () => {
+    const rec: Record<string, unknown> = { addedAt: 77, createdAt: 1000 };
+    expect(backfillAddedAt(rec, 999)).toBe(false);
+    expect(rec.addedAt).toBe(77);
+  });
+
+  it('répare un addedAt NaN (valeur non numérique indexée de travers)', () => {
+    const rec: Record<string, unknown> = { addedAt: Number.NaN, createdAt: 5000 };
+    expect(backfillAddedAt(rec)).toBe(true);
+    expect(rec.addedAt).toBe(5000);
   });
 });

@@ -22,6 +22,61 @@ import type {
   Track
 } from '@/types/domain';
 
+/**
+ * Résout l'horodatage `addedAt` d'une piste historique.
+ *
+ * Une piste importée par une version antérieure ne possède pas `addedAt` :
+ * elle est alors **invisible** pour `db.tracks.orderBy('addedAt')` (l'index
+ * Dexie ignore les enregistrements dont la clé indexée est absente), donc
+ * absente de la bibliothèque alors que les données sont bien stockées.
+ *
+ * Ordre de repli, du plus fiable au moins fiable :
+ *   1. `addedAt` existant et fini — on ne touche à rien (idempotent) ;
+ *   2. `createdAt` — date réelle de création de l'enregistrement ;
+ *   3. `updatedAt` — utilisée si `createdAt` est corrompu ;
+ *   4. `fallback` (date du jour) — dernier recours.
+ *
+ * Retourne `true` si la piste a été modifiée.
+ */
+export function backfillAddedAt(
+  track: Record<string, unknown>,
+  fallback: number = Date.now()
+): boolean {
+  if (typeof track.addedAt === 'number' && Number.isFinite(track.addedAt)) return false;
+  let value: number = fallback;
+  if (typeof track.createdAt === 'number' && Number.isFinite(track.createdAt)) {
+    value = track.createdAt;
+  } else if (typeof track.updatedAt === 'number' && Number.isFinite(track.updatedAt)) {
+    value = track.updatedAt;
+  }
+  track.addedAt = value;
+  return true;
+}
+
+/**
+ * Schéma **v1** (CozyDesk 2.0), exporté pour que les tests puissent créer une
+ * vraie base historique puis la migrer avec la classe réelle `CozyDeskDB`.
+ * Ne jamais modifier cette constante : elle représente le passé.
+ */
+export const SCHEMA_V1 = {
+  meta: 'key',
+  tasks: 'id, order, status, dueDate, priority, categoryId, completedAt, updatedAt',
+  categories: 'id, name',
+  notes: 'id, updatedAt, pinned, favorite',
+  journal: 'id, date, updatedAt',
+  pomodoroSessions: 'id, startedAt, phase, taskId',
+  habits: 'id, archived, createdAt',
+  habitLogs: 'id, habitId, date',
+  events: 'id, date, startMinute',
+  subjects: 'id, order',
+  chapters: 'id, subjectId, done, order',
+  flashcards: 'id, subjectId, due',
+  studySessions: 'id, subjectId, startedAt',
+  tracks: 'id, title, artist, addedAt',
+  playlists: 'id, name',
+  backups: 'key, createdAt'
+} as const;
+
 export class CozyDeskDB extends Dexie {
   meta!: Table<MetaRec, string>;
   tasks!: Table<Task, string>;
@@ -40,38 +95,26 @@ export class CozyDeskDB extends Dexie {
   playlists!: Table<Playlist, string>;
   backups!: Table<BackupRec, string>;
 
-  constructor() {
-    super('CozyDeskDB');
+  /**
+   * @param name nom de la base. Surchargeable uniquement pour les tests de
+   * migration réels (v1 -> v2) : l'application utilise toujours `CozyDeskDB`.
+   */
+  constructor(name = 'CozyDeskDB') {
+    super(name);
     // v1 — schéma initial. Les index supplémentaires se rajoutent
     // via db.version(n + 1).stores(...) sans jamais modifier les index existants.
-    this.version(1).stores({
-      meta: 'key',
-      tasks: 'id, order, status, dueDate, priority, categoryId, completedAt, updatedAt',
-      categories: 'id, name',
-      notes: 'id, updatedAt, pinned, favorite',
-      journal: 'id, date, updatedAt',
-      pomodoroSessions: 'id, startedAt, phase, taskId',
-      habits: 'id, archived, createdAt',
-      habitLogs: 'id, habitId, date',
-      events: 'id, date, startMinute',
-      subjects: 'id, order',
-      chapters: 'id, subjectId, done, order',
-      flashcards: 'id, subjectId, due',
-      studySessions: 'id, subjectId, startedAt',
-      tracks: 'id, title, artist, addedAt',
-      playlists: 'id, name',
-      backups: 'key, createdAt'
-    });
+    this.version(1).stores({ ...SCHEMA_V1 });
 
     // v2 — rétro-remplissage non destructif de `addedAt` sur les pistes historiques.
+    // Aucun index n'est ajouté ni retiré : `tracks` était déjà indexée par
+    // `addedAt`, seules les valeurs manquantes sont écrites. Une piste déjà
+    // pourvue d'un `addedAt` numérique n'est jamais touchée.
     this.version(2).upgrade(async (tx) => {
       await tx
         .table('tracks')
         .toCollection()
         .modify((track: Record<string, unknown>) => {
-          if (typeof track.addedAt !== 'number') {
-            track.addedAt = typeof track.createdAt === 'number' ? track.createdAt : Date.now();
-          }
+          backfillAddedAt(track);
         });
     });
   }
@@ -97,10 +140,7 @@ export function nowTs(): number {
 export async function migrateLegacyTracks(database: CozyDeskDB = db): Promise<number> {
   let count = 0;
   await database.tracks.toCollection().modify((track: Partial<Track>) => {
-    if (typeof track.addedAt !== 'number') {
-      track.addedAt = typeof track.createdAt === 'number' ? track.createdAt : Date.now();
-      count++;
-    }
+    if (backfillAddedAt(track as Record<string, unknown>)) count++;
   });
   return count;
 }
@@ -120,9 +160,26 @@ export async function openDatabase(): Promise<void> {
   });
   try {
     await db.open();
-    await migrateLegacyTracks(db);
+    const repaired = await migrateLegacyTracks(db);
+    if (repaired > 0) {
+      console.warn(`[cozydesk:db] ${repaired} piste(s) historique(s) réparée(s) (addedAt ajouté).`);
+    }
   } catch (err) {
     console.error('[cozydesk:db] ouverture impossible :', err);
     throw err;
   }
+}
+
+/**
+ * Charge la bibliothèque musicale, du plus récent au plus ancien.
+ *
+ * Filet de sécurité : `orderBy('addedAt')` n'itère que l'index, donc toute
+ * piste dont `addedAt` serait absent ou non numérique resterait invisible.
+ * On répare ces enregistrements avant de relire la liste, ce qui rend la
+ * requête auto-réparatrice quel que soit le chemin d'écriture (import,
+ * restauration de sauvegarde, ancienne version de l'application).
+ */
+export async function loadLibrary(database: CozyDeskDB = db): Promise<Track[]> {
+  await migrateLegacyTracks(database);
+  return database.tracks.orderBy('addedAt').reverse().toArray();
 }

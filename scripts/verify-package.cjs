@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Vérifie qu'un paquet Electron contient réellement la refonte 2.0.
+ * Vérifie qu'un paquet Electron contient réellement la refonte 2.0/2.1.
  *
  * Usage :
  *   node scripts/verify-package.cjs <app.asar> [--json=sortie.json] [--notes=notes.md]
@@ -11,9 +11,20 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+/** Version attendue dans l'archive empaquetée (référence : package.json). */
+const expectedVersion = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8')
+).version;
+
 /** Contrôles : chaque entrée décrit ce qui doit être présent dans le paquet. */
 const CHECKS = [
-  { name: 'version 2.0.0 déclarée', where: 'meta', test: (m) => m.version === '2.0.0' },
+  {
+    name: 'version 2.1.0 déclarée',
+    where: 'meta',
+    // Une seule source de vérité : la version du paquet empaqueté doit être
+    // celle de package.json, jamais une constante figée qui dérive.
+    test: (m) => m.version === expectedVersion
+  },
   {
     name: 'horloge principale (CSS)',
     where: 'css',

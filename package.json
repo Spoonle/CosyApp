@@ -1,8 +1,8 @@
 {
   "name": "cozydesk",
   "productName": "CozyDesk",
-  "version": "2.0.0",
-  "description": "CozyDesk 2.0 — bureau premium minimaliste : horloge centrale, widgets transparents, dock discret. 100% local.",
+  "version": "2.1.0",
+  "description": "CozyDesk 2.1 — bureau premium minimaliste : horloge centrale, widgets transparents, dock discret. 100% local.",
   "private": true,
   "author": "CozyDesk",
   "license": "MIT",
