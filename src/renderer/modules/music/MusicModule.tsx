@@ -24,6 +24,78 @@ import { useMusicStore, type RepeatMode } from '@/stores/music';
 import { trackGradient } from '@/services/audio/musicPlayer';
 import { confirmAction, toast } from '@/stores/toast';
 
+function hasUsableMetadata(meta: {
+  common?: { title?: string; artist?: string; album?: string; picture?: Array<{ data?: Uint8Array | number[]; format?: string }> };
+  format?: { duration?: number };
+}): boolean {
+  const common = meta.common ?? {};
+  const hasText = [common.title, common.artist, common.album].some(
+    (value) => typeof value === 'string' && value.trim().length > 0
+  );
+  if (hasText) return true;
+  if (Array.isArray(common.picture) && common.picture.some((pic) => Array.isArray(pic.data) || pic.data instanceof Uint8Array)) {
+    const data = common.picture[0]?.data;
+    if (Array.isArray(data) || data instanceof Uint8Array) return data.length > 0;
+  }
+  return typeof meta.format?.duration === 'number' && Number.isFinite(meta.format.duration);
+}
+
+function parseFallbackTitle(title: string): { artist?: string; title: string } {
+  const clean = title.trim();
+  if (!clean) return { title: clean };
+  const parts = clean.split(/\s+-\s+/);
+  if (parts.length >= 2) {
+    const artist = parts[0]?.trim();
+    const parsedTitle = parts.slice(1).join(' - ').trim();
+    if (artist && parsedTitle) return { artist, title: parsedTitle };
+  }
+  return { title: clean };
+}
+
+export async function createTrackFromGrant(
+  grant: { name: string; path: string; ext: string; size: number; url: string },
+  ts: number = nowTs()
+): Promise<{ track: Track; hasFullMetadata: boolean }> {
+  const fallbackTitle = grant.name.replace(/\.[^.]+$/, '');
+  const track: Track = {
+    id: uid(),
+    createdAt: ts,
+    updatedAt: ts,
+    addedAt: ts,
+    path: grant.path,
+    title: fallbackTitle,
+    ext: grant.ext,
+    size: grant.size
+  };
+  let hasFullMetadata = false;
+  // Métadonnées réelles (best-effort) via music-metadata.
+  try {
+    const { parseBlob } = await import('music-metadata');
+    const response = await fetch(grant.url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+    const meta = await parseBlob(blob);
+    if (hasUsableMetadata(meta)) {
+      if (meta.common.title) track.title = meta.common.title;
+      if (meta.common.artist) track.artist = meta.common.artist;
+      if (meta.common.album) track.album = meta.common.album;
+      if (meta.common.picture !== undefined && meta.common.picture.length > 0) {
+        const pic = meta.common.picture[0];
+        track.picture = new Blob([pic.data], { type: pic.format ?? 'image/jpeg' });
+      }
+      if (typeof meta.format.duration === 'number') {
+        track.durationSec = Math.round(meta.format.duration);
+      }
+      hasFullMetadata = true;
+    }
+  } catch {
+    const fallback = parseFallbackTitle(fallbackTitle);
+    if (fallback.artist) track.artist = fallback.artist;
+    track.title = fallback.title;
+  }
+  return { track, hasFullMetadata };
+}
+
 export default function MusicModule(): React.ReactNode {
   const init = useMusicStore((s) => s.init);
   const playTrack = useMusicStore((s) => s.playTrack);
@@ -84,43 +156,9 @@ export default function MusicModule(): React.ReactNode {
       let parsedCount = 0;
       let fallbackCount = 0;
       for (const grant of grants) {
-        const ts = nowTs();
-        const fallbackTitle = grant.name.replace(/\.[^.]+$/, '');
-        const track: Track = {
-          id: uid(),
-          createdAt: ts,
-          updatedAt: ts,
-          path: grant.path,
-          title: fallbackTitle,
-          ext: grant.ext,
-          size: grant.size
-        };
-        // Métadonnées réelles (best-effort) via music-metadata.
-        try {
-          const { parseBlob } = await import('music-metadata');
-          const resp = await fetch(grant.url);
-          const blob = await resp.blob();
-          const meta = await parseBlob(blob);
-          if (meta.common.title) track.title = meta.common.title;
-          if (meta.common.artist) track.artist = meta.common.artist;
-          if (meta.common.album) track.album = meta.common.album;
-          if (meta.common.picture !== undefined && meta.common.picture.length > 0) {
-            const pic = meta.common.picture[0];
-            track.picture = new Blob([pic.data], { type: pic.format });
-          }
-          if (typeof meta.format.duration === 'number') {
-            track.durationSec = Math.round(meta.format.duration);
-          }
-          parsedCount++;
-        } catch {
-          // Repli : découpe « Artiste - Titre » du nom de fichier.
-          const parts = fallbackTitle.split(' - ');
-          if (parts.length >= 2) {
-            track.artist = parts[0].trim();
-            track.title = parts.slice(1).join(' - ').trim();
-          }
-          fallbackCount++;
-        }
+        const { track, hasFullMetadata } = await createTrackFromGrant(grant);
+        if (hasFullMetadata) parsedCount++;
+        else fallbackCount++;
         await db.tracks.put(track);
       }
       toast(

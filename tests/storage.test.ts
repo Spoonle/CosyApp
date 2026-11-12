@@ -71,6 +71,7 @@ describe('stockage Dexie', () => {
       id: 't1',
       createdAt: ts,
       updatedAt: ts,
+      addedAt: ts,
       path: '/musique/a.mp3',
       title: 'Test',
       ext: 'mp3',

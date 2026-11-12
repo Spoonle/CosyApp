@@ -3,7 +3,7 @@
  * L'import valide chaque enregistrement, crée une sauvegarde préalable
  * et fusionne (upsert) sans jamais supprimer l'existant.
  */
-import { db } from './db';
+import { DB_SCHEMA_VERSION, db } from './db';
 import { writeBackup } from './backup';
 import type { BaseRec } from '@/types/domain';
 
@@ -43,7 +43,7 @@ export function validateBundle(raw: unknown): ExportBundle {
   if (typeof raw !== 'object' || raw === null) throw new Error('Fichier illisible.');
   const b = raw as Record<string, unknown>;
   if (b.app !== 'CozyDesk') throw new Error('Ce fichier n’est pas une sauvegarde CozyDesk.');
-  if (typeof b.schemaVersion !== 'number' || b.schemaVersion > 1) {
+  if (typeof b.schemaVersion !== 'number' || b.schemaVersion > DB_SCHEMA_VERSION) {
     throw new Error('Version de sauvegarde non prise en charge.');
   }
   if (typeof b.data !== 'object' || b.data === null) throw new Error('Données absentes du fichier.');
@@ -61,7 +61,7 @@ export async function buildExportBundle(): Promise<ExportBundle> {
   return {
     app: 'CozyDesk',
     kind: 'export',
-    schemaVersion: 1,
+    schemaVersion: DB_SCHEMA_VERSION,
     exportedAt: Date.now(),
     data
   };
@@ -87,6 +87,12 @@ export async function importBundle(bundle: ExportBundle): Promise<ImportReport> 
     const valid: BaseRec[] = [];
     for (const row of rows) {
       if (isBaseRecord(row)) {
+        if (name === 'tracks') {
+          const t = row as unknown as Record<string, unknown>;
+          if (typeof t.addedAt !== 'number') {
+            t.addedAt = typeof t.createdAt === 'number' ? t.createdAt : Date.now();
+          }
+        }
         valid.push(row as BaseRec);
         ok++;
       } else {

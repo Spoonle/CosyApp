@@ -3,7 +3,7 @@
  * + copie fichier dans userData/backups via IPC (si disponible).
  * Journalisation dans la table `backups` (30 derniers conservés).
  */
-import { db, uid, nowTs } from './db';
+import { DB_SCHEMA_VERSION, db, uid, nowTs } from './db';
 import type { BackupRec } from '@/types/domain';
 
 export type BackupLabel = 'auto-démarrage' | 'pré-import' | 'pré-migration' | 'manuel';
@@ -31,7 +31,7 @@ export async function snapshotAll(): Promise<string> {
   return JSON.stringify({
     app: 'CozyDesk',
     kind: 'snapshot',
-    schemaVersion: 1,
+    schemaVersion: DB_SCHEMA_VERSION,
     createdAt: nowTs(),
     data
   });

@@ -62,8 +62,22 @@ export class CozyDeskDB extends Dexie {
       playlists: 'id, name',
       backups: 'key, createdAt'
     });
+
+    // v2 — rétro-remplissage non destructif de `addedAt` sur les pistes historiques.
+    this.version(2).upgrade(async (tx) => {
+      await tx
+        .table('tracks')
+        .toCollection()
+        .modify((track: Record<string, unknown>) => {
+          if (typeof track.addedAt !== 'number') {
+            track.addedAt = typeof track.createdAt === 'number' ? track.createdAt : Date.now();
+          }
+        });
+    });
   }
 }
+
+export const DB_SCHEMA_VERSION = 2;
 
 export const db = new CozyDeskDB();
 
@@ -74,6 +88,21 @@ export function uid(): string {
 
 export function nowTs(): number {
   return Date.now();
+}
+
+/**
+ * Rétro-remplit de façon non-destructive `addedAt` pour toutes les pistes
+ * qui en sont dépourvues (ex. créées sous une ancienne version sans montée de schéma).
+ */
+export async function migrateLegacyTracks(database: CozyDeskDB = db): Promise<number> {
+  let count = 0;
+  await database.tracks.toCollection().modify((track: Partial<Track>) => {
+    if (typeof track.addedAt !== 'number') {
+      track.addedAt = typeof track.createdAt === 'number' ? track.createdAt : Date.now();
+      count++;
+    }
+  });
+  return count;
 }
 
 /** Ouvre la base avec gestion d'erreur explicite (jamais de catch silencieux). */
@@ -91,6 +120,7 @@ export async function openDatabase(): Promise<void> {
   });
   try {
     await db.open();
+    await migrateLegacyTracks(db);
   } catch (err) {
     console.error('[cozydesk:db] ouverture impossible :', err);
     throw err;

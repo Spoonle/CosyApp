@@ -164,6 +164,7 @@ export interface Track extends BaseRec {
   size: number;
   /** Pochette d'album si présente dans les métadonnées. */
   picture?: Blob;
+  addedAt: number;
 }
 
 export interface Playlist extends BaseRec {
