@@ -18,7 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { EmptyState, GlassButton, IconButton, Input, SectionTitle, Slider } from '@/components/glass';
-import { db, nowTs, uid } from '@/services/storage/db';
+import { db, loadLibrary, nowTs, uid } from '@/services/storage/db';
 import type { Playlist, Track } from '@/types/domain';
 import { useMusicStore, type RepeatMode } from '@/stores/music';
 import { trackGradient } from '@/services/audio/musicPlayer';
@@ -127,7 +127,7 @@ export default function MusicModule(): React.ReactNode {
     init();
   }, [init]);
 
-  const tracks = useLiveQuery(() => db.tracks.orderBy('addedAt').reverse().toArray(), [], [] as Track[]);
+  const tracks = useLiveQuery(() => loadLibrary(), [], [] as Track[]);
   const playlists = useLiveQuery(() => db.playlists.toArray(), [], [] as Playlist[]);
 
   const currentTrack = useMemo(

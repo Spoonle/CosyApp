@@ -19,9 +19,9 @@ dist/ + dist-electron/ + package.json ──electron-builder──► release/
 | `npm ci` | installation reproductible depuis `package-lock.json` | oui |
 | `npm run typecheck` | `tsc` rendu + `tsc` processus principal | oui |
 | `npm run lint` | ESLint 9, zéro avertissement | oui |
-| `npm run test` | Vitest, 16 fichiers / 150 tests | oui |
+| `npm run test` | Vitest, 17 fichiers / 173 tests | oui |
 | `npm run build` | tout ci-dessus + `dist/` + `dist-electron/` | oui |
-| `npm run package` | `release/CozyDesk-2.0-Final-Portable.exe` + `-Setup.exe` | CI Windows uniquement |
+| `npm run package` | `release/CozyDesk-2.1-Final-Portable.exe` + `-Setup.exe` | CI Windows uniquement |
 | `npm run package:nosign` | variante sans signature, pour Linux sans `wine` | non testé localement |
 | `npm run preview:web` | `dist/` servi sur http://localhost:4173 | oui |
 
@@ -32,8 +32,8 @@ dist/ + dist-electron/ + package.json ──electron-builder──► release/
 - cibles `nsis` (installateur) et `portable`, architecture x64 ;
 - `files` : `dist/**`, `dist-electron/**`, `package.json` — aucun `node_modules`
   applicatif n'est embarqué (tout est bundlé) ;
-- noms d'artefacts fixes : `CozyDesk-2.0-Final-Setup.exe`,
-  `CozyDesk-2.0-Final-Portable.exe` ;
+- noms d'artefacts fixes : `CozyDesk-2.1-Final-Setup.exe`,
+  `CozyDesk-2.1-Final-Portable.exe` ;
 - `signAndEditExecutable: true` (incrustation de l'icône native).
 
 **Limite connue** : produire un exécutable Windows depuis Linux/macOS demande
@@ -54,11 +54,11 @@ La voie de référence reste GitHub Actions sur un runner Windows.
    contrôles : version, CSS d'horloge, apparences, bibliothèque de widgets,
    lanceur, réglages, fenêtres flottantes) ;
 6. **lancement réel** du binaire empaqueté en mode smoke
-   (`--smoke-test=… --open=tasks,notes`), capture `smoke-2.0.png` et rapport
+   (`--smoke-test=… --open=tasks,notes`), capture `smoke-2.1.png` et rapport
    `smoke.json` ;
 7. contrôle que `%APPDATA%\CozyDesk` a été créé (persistance) ;
-8. **archive source** `CozyDesk-2.0-Final-Source.zip` avec vérification de ses
-   entrées (13 fichiers clés présents, aucun `node_modules`/`dist`/`release`) ;
+8. **archive source** `CozyDesk-2.1-Final-Source.zip` avec vérification de ses
+   entrées (14 fichiers clés présents, aucun `node_modules`/`dist`/`release`) ;
 9. publication de la release **uniquement sur tag** ;
 10. barrière finale : les trois livrables doivent exister et la capture doit être
     valide, sinon le job échoue.
@@ -73,12 +73,12 @@ lisibles même quand les logs ne sont pas accessibles.
 npm ci && npm run build
 
 # 2. Commit, puis tag
-git tag -a v2.0.0 -m "CozyDesk 2.0"
-git push origin v2.0.0
+git tag -a v2.1.0 -m "CozyDesk 2.1"
+git push origin v2.1.0
 
 # 3. La CI construit, vérifie et publie les trois livrables
 gh run watch
-gh release view v2.0.0
+gh release view v2.1.0
 ```
 
 Un build manuel (sans tag) produit les artefacts dans l'onglet *Actions* sans
@@ -97,4 +97,5 @@ toucher à la release : utile pour valider une branche.
 | intégrité de l'archive source | étape 8 |
 
 Ce qui **n'est pas** vérifié automatiquement : le rendu visuel pixel par pixel et
-les gestes de glisser-déposer. Voir `docs/QA-FINAL-2.0.md`, section « Limites ».
+les gestes de glisser-déposer. Voir `docs/RELEASE-2.1.md` (§6) et
+`docs/QA-FINAL-2.0.md`, section « Limites ».
