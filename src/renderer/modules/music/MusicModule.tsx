@@ -18,7 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { EmptyState, GlassButton, IconButton, Input, SectionTitle, Slider } from '@/components/glass';
-import { db, loadLibrary, nowTs, uid } from '@/services/storage/db';
+import { db, loadLibrary, nowTs, repairLibrary, uid } from '@/services/storage/db';
 import type { Playlist, Track } from '@/types/domain';
 import { useMusicStore, type RepeatMode } from '@/stores/music';
 import { trackGradient } from '@/services/audio/musicPlayer';
@@ -125,6 +125,10 @@ export default function MusicModule(): React.ReactNode {
 
   useEffect(() => {
     init();
+    // Réparation hors liveQuery : une piste historique sans `addedAt` n'est pas
+    // indexée, donc absente du `useLiveQuery` ci-dessous. L'écriture déclenche
+    // la notification Dexie, qui relit la bibliothèque réparée.
+    void repairLibrary();
   }, [init]);
 
   const tracks = useLiveQuery(() => loadLibrary(), [], [] as Track[]);

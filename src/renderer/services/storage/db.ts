@@ -160,10 +160,7 @@ export async function openDatabase(): Promise<void> {
   });
   try {
     await db.open();
-    const repaired = await migrateLegacyTracks(db);
-    if (repaired > 0) {
-      console.warn(`[cozydesk:db] ${repaired} piste(s) historique(s) réparée(s) (addedAt ajouté).`);
-    }
+    await repairLibrary(db);
   } catch (err) {
     console.error('[cozydesk:db] ouverture impossible :', err);
     throw err;
@@ -173,13 +170,43 @@ export async function openDatabase(): Promise<void> {
 /**
  * Charge la bibliothèque musicale, du plus récent au plus ancien.
  *
- * Filet de sécurité : `orderBy('addedAt')` n'itère que l'index, donc toute
- * piste dont `addedAt` serait absent ou non numérique resterait invisible.
- * On répare ces enregistrements avant de relire la liste, ce qui rend la
- * requête auto-réparatrice quel que soit le chemin d'écriture (import,
- * restauration de sauvegarde, ancienne version de l'application).
+ * **Lecture pure** : cette fonction ne doit jamais écrire. Elle est appelée
+ * depuis `useLiveQuery`, et Dexie interdit toute transaction en écriture dans
+ * le contexte d'un `liveQuery` (`ReadOnlyError`). La réparation des pistes
+ * historiques se fait donc via `repairLibrary()`, appelée hors du liveQuery.
  */
 export async function loadLibrary(database: CozyDeskDB = db): Promise<Track[]> {
-  await migrateLegacyTracks(database);
   return database.tracks.orderBy('addedAt').reverse().toArray();
+}
+
+/**
+ * Répare les pistes stockées sans `addedAt` (donc invisibles pour `loadLibrary`).
+ *
+ * **Écriture** — à n'appeler que hors de tout `liveQuery`. Idempotent : ne
+ * modifie aucune piste déjà pourvue d'un `addedAt`. Retourne le nombre de
+ * pistes réparées. Un garde-fou évite de relancer un balayage complet à chaque
+ * montage du module dans la même session.
+ */
+let repairInFlight: Promise<number> | null = null;
+
+export function repairLibrary(database: CozyDeskDB = db): Promise<number> {
+  if (repairInFlight === null) {
+    repairInFlight = migrateLegacyTracks(database)
+      .then((repaired) => {
+        if (repaired > 0) {
+          console.warn(
+            `[cozydesk:db] ${repaired} piste(s) historique(s) réparée(s) (addedAt ajouté).`
+          );
+        }
+        return repaired;
+      })
+      .catch((err: unknown) => {
+        // Un échec de réparation ne doit jamais empêcher l'affichage de la
+        // bibliothèque : on réessaiera au prochain démarrage.
+        repairInFlight = null;
+        console.warn('[cozydesk:db] réparation de la bibliothèque impossible :', err);
+        return 0;
+      });
+  }
+  return repairInFlight;
 }

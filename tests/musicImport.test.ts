@@ -9,6 +9,7 @@
  */
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import Dexie from 'dexie';
+import { liveQuery } from 'dexie';
 import {
   backfillAddedAt,
   CozyDeskDB,
@@ -417,26 +418,65 @@ describe('Migration réelle : classe CozyDeskDB v1 -> v2', () => {
   });
 });
 
-describe('Requête auto-réparatrice de la bibliothèque', () => {
-  it('loadLibrary() répare puis retourne même une piste insérée sans addedAt', async () => {
+describe('Lecture de la bibliothèque : lecture pure + réparation explicite', () => {
+  it('loadLibrary() est une lecture pure : aucune écriture, pas de bogue liveQuery', async () => {
     const ts = 1650000000000;
     await db.tracks.put({
-      id: 'sneaky',
+      id: 'unrepaired',
       createdAt: ts,
       updatedAt: ts,
-      path: '/music/sneaky.m4a',
-      title: 'Sneaky',
+      path: '/music/unrepaired.m4a',
+      title: 'Unrepaired',
       ext: 'm4a',
       size: 42
     } as unknown as Track);
 
-    // Bogue historique : la piste est stockée mais absente de orderBy.
-    expect(await db.tracks.orderBy('addedAt').count()).toBe(0);
+    // loadLibrary ne doit jamais écrire : il ignore simplement la piste non
+    // indexée. (Dexie interdit l'écriture dans un liveQuery — cf. test suivant.)
+    expect(await loadLibrary()).toHaveLength(0);
 
-    const library = await loadLibrary();
-    expect(library.map((t) => t.id)).toEqual(['sneaky']);
-    expect(library[0].addedAt).toBe(ts);
-    expect(library[0].title).toBe('Sneaky');
+    // La réparation est une étape séparée, hors liveQuery.
+    expect(await migrateLegacyTracks()).toBe(1);
+
+    const repaired = await loadLibrary();
+    expect(repaired.map((t) => t.id)).toEqual(['unrepaired']);
+    expect(repaired[0].addedAt).toBe(ts);
+    expect(repaired[0].title).toBe('Unrepaired');
+  });
+
+  it('loadLibrary() reste utilisable dans un liveQuery (régression Windows CI)', async () => {
+    const ts = 1640000000000;
+    await db.tracks.bulkPut([
+      { id: 'live-a', createdAt: ts, updatedAt: ts, path: '/m/a.mp3', title: 'A', ext: 'mp3', size: 1 },
+      {
+        id: 'live-b',
+        createdAt: ts + 500,
+        updatedAt: ts + 500,
+        addedAt: ts + 500,
+        path: '/m/b.mp3',
+        title: 'B',
+        ext: 'mp3',
+        size: 1
+      }
+    ] as unknown as Track[]);
+
+    // Un liveQuery qui écrirait lèverait ReadOnlyError ; celui-ci doit réussir
+    // et émettre une valeur exploitable.
+    const seen = await new Promise<Track[]>((resolve, reject) => {
+      const sub = liveQuery(() => loadLibrary()).subscribe({
+        next: (rows) => {
+          sub.unsubscribe();
+          resolve(rows);
+        },
+        error: (err) => {
+          sub.unsubscribe();
+          reject(err);
+        }
+      });
+    });
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0].id).toBe('live-b');
   });
 
   it('classe correctement un mélange de pistes neuves et historiques', async () => {
@@ -454,6 +494,7 @@ describe('Requête auto-réparatrice de la bibliothèque', () => {
       }
     ] as unknown as Track[]);
 
+    await migrateLegacyTracks();
     const library = await loadLibrary();
     expect(library.map((t) => t.id)).toEqual(['new', 'old']);
   });
