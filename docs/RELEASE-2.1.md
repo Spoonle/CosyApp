@@ -39,7 +39,8 @@ repartir de zéro.
 | Migration Dexie **v1 → v2** | `src/renderer/services/storage/db.ts` | rétro-remplit les pistes historiques un seul commit, sans toucher aux index |
 | `backfillAddedAt()` | `src/renderer/services/storage/db.ts` | règle de repli unique, partagée par les trois chemins d’écriture |
 | `migrateLegacyTracks()` | `src/renderer/services/storage/db.ts` | filet de sécurité exécuté à chaque ouverture de la base |
-| `loadLibrary()` | `src/renderer/services/storage/db.ts` | requête **auto-réparatrice** utilisée par le module Musique |
+| `loadLibrary()` | `src/renderer/services/storage/db.ts` | lecture **pure** de la bibliothèque (voir §3) |
+| `repairLibrary()` | `src/renderer/services/storage/db.ts` | réparation hors `liveQuery`, à l’ouverture et au montage du module |
 | Normalisation à la restauration | `src/renderer/services/storage/exportImport.ts` | une sauvegarde 2.0 sans `addedAt` reste restaurable |
 
 ---
@@ -60,7 +61,40 @@ absent et réparé.
 
 ---
 
-## 3. Non-destructif, par construction
+## 3. Une erreur commise puis corrigée pendant cette release
+
+La première version de ce correctif rendait `loadLibrary()` « auto-réparatrice »
+en écrivant les `addedAt` manquants **avant** la lecture. Appelée depuis un
+`useLiveQuery`, elle déclenchait :
+
+```text
+ReadOnlyError: Readwrite transaction in liveQuery context
+```
+
+Dexie interdit toute transaction en écriture dans le contexte d’un `liveQuery`,
+et le module Musique ne se montait plus du tout — plus grave que le bogue
+d’origine.
+
+Le problème a été détecté par la CI Windows, pas par les tests locaux : sous
+Linux, l’ordre d’exécution des fichiers de test laissait la base déjà ouverte et
+le `modify()` ne trouvait le plus souvent rien à écrire, ce qui masquait la
+course. C’est précisément ce genre d’écart que la CI existe pour attraper.
+
+**Correction.** La lecture et l’écriture sont désormais séparées :
+
+- `loadLibrary()` — **lecture pure**, utilisable dans `liveQuery` ;
+- `repairLibrary()` — écriture, appelée à l’ouverture de la base (avant que
+  l’interface ne s’abonne) et au montage du module, **hors** `liveQuery` ;
+  la notification Dexie provoque ensuite la relecture de la bibliothèque
+  réparée.
+
+Un test de non-régression souscrit un vrai `liveQuery` sur `loadLibrary()` ; il
+échoue avec `ReadOnlyError` sur l’ancienne implémentation et passe sur la
+nouvelle.
+
+---
+
+## 4. Non-destructif, par construction
 
 - **Aucun index n’est ajouté ni retiré** en v2 : la version 2 ne contient qu’un
   `upgrade()`, elle hérite du schéma v1. Le risque de reconstruction de table
@@ -75,7 +109,7 @@ absent et réparé.
 
 ---
 
-## 4. Formats audio
+## 5. Formats audio
 
 La liste blanche du processus principal (`AUDIO_EXTS`, `src/main/ipc/files.ts`)
 couvre déjà `mp3`, `wav`, `flac`, `ogg`, `oga`, `m4a`, `aac`, `opus`, `weba`,
@@ -101,7 +135,7 @@ indexée** de la bibliothèque, et pas seulement stockée :
 
 ---
 
-## 5. Résilience aux métadonnées
+## 6. Résilience aux métadonnées
 
 `createTrackFromGrant()` entoure `parseBlob` d’un `try/catch` : un fichier sans
 métadonnées, un conteneur exotique ou une lecture impossible ne bloque jamais
@@ -114,7 +148,7 @@ Deux tests couvrent explicitement ce chemin (URL inaccessible, nom sans tiret).
 
 ---
 
-## 6. Tests de régression
+## 7. Tests de régression
 
 Ajoutés dans `tests/musicImport.test.ts` (porté de 12 à **21 tests**) :
 
@@ -142,28 +176,33 @@ sauvegarde legacy, préservation des playlists.
 > Le nouveau test utilise `CozyDeskDB` elle-même. C’est la principale faiblesse
 > corrigée dans cette version.
 
+**Lecture vs écriture**
+- `loadLibrary()` est vérifiée comme lecture pure ;
+- un vrai `liveQuery` est souscrit sur `loadLibrary()` : il doit émettre une
+  valeur sans lever `ReadOnlyError` (régression de la CI Windows).
+
 Également ajouté : `tests/verifyPackage.test.ts` vérifie désormais que la version
 contrôlée dans `app.asar` provient de `package.json` (plus de constante figée) et
 qu’elle correspond aux noms d’artefacts d’`electron-builder.yml`.
 
 ---
 
-## 7. Résultats de validation (exécutés)
+## 8. Résultats de validation (exécutés)
 
 | Étape | Commande | Résultat |
 |---|---|---|
 | Typecheck rendu | `npx tsc -p tsconfig.json --noEmit` | ✅ 0 erreur |
 | Typecheck processus principal | `npx tsc -p tsconfig.electron.json --noEmit` | ✅ 0 erreur |
 | ESLint | `npx eslint .` | ✅ 0 erreur, 0 avertissement |
-| Tests | `npx vitest run` | ✅ **17 fichiers, 173 tests** |
+| Tests | `npx vitest run` | ✅ **17 fichiers, 174 tests** |
 | Build Electron | `npm run build:electron` | ✅ `main.cjs` + `preload.cjs` |
 | Build de production | `npx vite build` | ✅ `dist/` généré |
 
-Comparaison avec 2.0.0 : **162 → 173 tests**, tous verts.
+Comparaison avec 2.0.0 : **162 → 174 tests**, tous verts.
 
 ---
 
-## 8. Mise à jour depuis 2.0.0
+## 9. Mise à jour depuis 2.0.0
 
 Aucune action manuelle :
 

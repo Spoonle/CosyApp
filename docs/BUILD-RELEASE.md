@@ -19,7 +19,7 @@ dist/ + dist-electron/ + package.json ──electron-builder──► release/
 | `npm ci` | installation reproductible depuis `package-lock.json` | oui |
 | `npm run typecheck` | `tsc` rendu + `tsc` processus principal | oui |
 | `npm run lint` | ESLint 9, zéro avertissement | oui |
-| `npm run test` | Vitest, 17 fichiers / 173 tests | oui |
+| `npm run test` | Vitest, 17 fichiers / 174 tests | oui |
 | `npm run build` | tout ci-dessus + `dist/` + `dist-electron/` | oui |
 | `npm run package` | `release/CozyDesk-2.1-Final-Portable.exe` + `-Setup.exe` | CI Windows uniquement |
 | `npm run package:nosign` | variante sans signature, pour Linux sans `wine` | non testé localement |
@@ -97,5 +97,5 @@ toucher à la release : utile pour valider une branche.
 | intégrité de l'archive source | étape 8 |
 
 Ce qui **n'est pas** vérifié automatiquement : le rendu visuel pixel par pixel et
-les gestes de glisser-déposer. Voir `docs/RELEASE-2.1.md` (§6) et
+les gestes de glisser-déposer. Voir `docs/RELEASE-2.1.md` (§7) et
 `docs/QA-FINAL-2.0.md`, section « Limites ».
